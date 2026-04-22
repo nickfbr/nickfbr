@@ -1,0 +1,2185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Spark — AI tips & tricks</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; background: #E8E5DE; font-family: -apple-system, system-ui; }
+  body { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 32px 0; }
+  * { -webkit-tap-highlight-color: transparent; }
+  button:focus { outline: none; }
+  ::-webkit-scrollbar { display: none; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" data-presets="react">
+
+// iOS.jsx — Simplified iOS 26 (Liquid Glass) device frame
+// Based on the iOS 26 UI Kit + Figma status bar spec. No assets, no deps.
+// Exports: IOSDevice, IOSStatusBar, IOSNavBar, IOSGlassPill, IOSList, IOSListRow, IOSKeyboard
+
+// ─────────────────────────────────────────────────────────────
+// Status bar
+// ─────────────────────────────────────────────────────────────
+function IOSStatusBar({ dark = false, time = '9:41' }) {
+  const c = dark ? '#fff' : '#000';
+  return (
+    <div style={{
+      display: 'flex', gap: 154, alignItems: 'center', justifyContent: 'center',
+      padding: '21px 24px 19px', boxSizing: 'border-box',
+      position: 'relative', zIndex: 20, width: '100%',
+    }}>
+      <div style={{ flex: 1, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: 1.5 }}>
+        <span style={{
+          fontFamily: '-apple-system, "SF Pro", system-ui', fontWeight: 590,
+          fontSize: 17, lineHeight: '22px', color: c,
+        }}>{time}</span>
+      </div>
+      <div style={{ flex: 1, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, paddingTop: 1, paddingRight: 1 }}>
+        <svg width="19" height="12" viewBox="0 0 19 12">
+          <rect x="0" y="7.5" width="3.2" height="4.5" rx="0.7" fill={c}/>
+          <rect x="4.8" y="5" width="3.2" height="7" rx="0.7" fill={c}/>
+          <rect x="9.6" y="2.5" width="3.2" height="9.5" rx="0.7" fill={c}/>
+          <rect x="14.4" y="0" width="3.2" height="12" rx="0.7" fill={c}/>
+        </svg>
+        <svg width="17" height="12" viewBox="0 0 17 12">
+          <path d="M8.5 3.2C10.8 3.2 12.9 4.1 14.4 5.6L15.5 4.5C13.7 2.7 11.2 1.5 8.5 1.5C5.8 1.5 3.3 2.7 1.5 4.5L2.6 5.6C4.1 4.1 6.2 3.2 8.5 3.2Z" fill={c}/>
+          <path d="M8.5 6.8C9.9 6.8 11.1 7.3 12 8.2L13.1 7.1C11.8 5.9 10.2 5.1 8.5 5.1C6.8 5.1 5.2 5.9 3.9 7.1L5 8.2C5.9 7.3 7.1 6.8 8.5 6.8Z" fill={c}/>
+          <circle cx="8.5" cy="10.5" r="1.5" fill={c}/>
+        </svg>
+        <svg width="27" height="13" viewBox="0 0 27 13">
+          <rect x="0.5" y="0.5" width="23" height="12" rx="3.5" stroke={c} strokeOpacity="0.35" fill="none"/>
+          <rect x="2" y="2" width="20" height="9" rx="2" fill={c}/>
+          <path d="M25 4.5V8.5C25.8 8.2 26.5 7.2 26.5 6.5C26.5 5.8 25.8 4.8 25 4.5Z" fill={c} fillOpacity="0.4"/>
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Liquid glass pill — blur + tint + shine
+// ─────────────────────────────────────────────────────────────
+function IOSGlassPill({ children, dark = false, style = {} }) {
+  return (
+    <div style={{
+      height: 44, minWidth: 44, borderRadius: 9999,
+      position: 'relative', overflow: 'hidden',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      boxShadow: dark
+        ? '0 2px 6px rgba(0,0,0,0.35), 0 6px 16px rgba(0,0,0,0.2)'
+        : '0 1px 3px rgba(0,0,0,0.07), 0 3px 10px rgba(0,0,0,0.06)',
+      ...style,
+    }}>
+      {/* blur + tint */}
+      <div style={{
+        position: 'absolute', inset: 0, borderRadius: 9999,
+        backdropFilter: 'blur(12px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(12px) saturate(180%)',
+        background: dark ? 'rgba(120,120,128,0.28)' : 'rgba(255,255,255,0.5)',
+      }} />
+      {/* shine */}
+      <div style={{
+        position: 'absolute', inset: 0, borderRadius: 9999,
+        boxShadow: dark
+          ? 'inset 1.5px 1.5px 1px rgba(255,255,255,0.15), inset -1px -1px 1px rgba(255,255,255,0.08)'
+          : 'inset 1.5px 1.5px 1px rgba(255,255,255,0.7), inset -1px -1px 1px rgba(255,255,255,0.4)',
+        border: dark ? '0.5px solid rgba(255,255,255,0.15)' : '0.5px solid rgba(0,0,0,0.06)',
+      }} />
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', padding: '0 4px' }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Navigation bar — glass pills + large title
+// ─────────────────────────────────────────────────────────────
+function IOSNavBar({ title = 'Title', dark = false, trailingIcon = true }) {
+  const muted = dark ? 'rgba(255,255,255,0.6)' : '#404040';
+  const text = dark ? '#fff' : '#000';
+  const pillIcon = (content) => (
+    <IOSGlassPill dark={dark}>
+      <div style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {content}
+      </div>
+    </IOSGlassPill>
+  );
+  return (
+    <div style={{
+      display: 'flex', flexDirection: 'column', gap: 10,
+      paddingTop: 62, paddingBottom: 10, position: 'relative', zIndex: 5,
+    }}>
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 16px',
+      }}>
+        {/* back chevron */}
+        {pillIcon(
+          <svg width="12" height="20" viewBox="0 0 12 20" fill="none" style={{ marginLeft: -1 }}>
+            <path d="M10 2L2 10l8 8" stroke={muted} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        )}
+        {/* trailing ellipsis */}
+        {trailingIcon && pillIcon(
+          <svg width="22" height="6" viewBox="0 0 22 6">
+            <circle cx="3" cy="3" r="2.5" fill={muted}/>
+            <circle cx="11" cy="3" r="2.5" fill={muted}/>
+            <circle cx="19" cy="3" r="2.5" fill={muted}/>
+          </svg>
+        )}
+      </div>
+      {/* large title */}
+      <div style={{
+        padding: '0 16px',
+        fontFamily: '-apple-system, system-ui',
+        fontSize: 34, fontWeight: 700, lineHeight: '41px',
+        color: text, letterSpacing: 0.4,
+      }}>{title}</div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Grouped list (inset card, r:26) + row (52px)
+// ─────────────────────────────────────────────────────────────
+function IOSListRow({ title, detail, icon, chevron = true, isLast = false, dark = false }) {
+  const text = dark ? '#fff' : '#000';
+  const sec = dark ? 'rgba(235,235,245,0.6)' : 'rgba(60,60,67,0.6)';
+  const ter = dark ? 'rgba(235,235,245,0.3)' : 'rgba(60,60,67,0.3)';
+  const sep = dark ? 'rgba(84,84,88,0.65)' : 'rgba(60,60,67,0.12)';
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', minHeight: 52,
+      padding: '0 16px', position: 'relative',
+      fontFamily: '-apple-system, system-ui', fontSize: 17,
+      letterSpacing: -0.43,
+    }}>
+      {icon && (
+        <div style={{
+          width: 30, height: 30, borderRadius: 7, background: icon,
+          marginRight: 12, flexShrink: 0,
+        }} />
+      )}
+      <div style={{ flex: 1, color: text }}>{title}</div>
+      {detail && <span style={{ color: sec, marginRight: 6 }}>{detail}</span>}
+      {chevron && (
+        <svg width="8" height="14" viewBox="0 0 8 14" style={{ flexShrink: 0 }}>
+          <path d="M1 1l6 6-6 6" stroke={ter} strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      )}
+      {!isLast && (
+        <div style={{
+          position: 'absolute', bottom: 0, right: 0,
+          left: icon ? 58 : 16, height: 0.5, background: sep,
+        }} />
+      )}
+    </div>
+  );
+}
+
+function IOSList({ header, children, dark = false }) {
+  const hc = dark ? 'rgba(235,235,245,0.6)' : 'rgba(60,60,67,0.6)';
+  const bg = dark ? '#1C1C1E' : '#fff';
+  return (
+    <div>
+      {header && (
+        <div style={{
+          fontFamily: '-apple-system, system-ui', fontSize: 13,
+          color: hc, textTransform: 'uppercase',
+          padding: '8px 36px 6px', letterSpacing: -0.08,
+        }}>{header}</div>
+      )}
+      <div style={{
+        background: bg, borderRadius: 26,
+        margin: '0 16px', overflow: 'hidden',
+      }}>{children}</div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Device frame
+// ─────────────────────────────────────────────────────────────
+function IOSDevice({
+  children, width = 402, height = 874, dark = false,
+  title, keyboard = false,
+}) {
+  return (
+    <div style={{
+      width, height, borderRadius: 48, overflow: 'hidden',
+      position: 'relative', background: dark ? '#000' : '#F2F2F7',
+      boxShadow: '0 40px 80px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.12)',
+      fontFamily: '-apple-system, system-ui, sans-serif',
+      WebkitFontSmoothing: 'antialiased',
+    }}>
+      {/* dynamic island */}
+      <div style={{
+        position: 'absolute', top: 11, left: '50%', transform: 'translateX(-50%)',
+        width: 126, height: 37, borderRadius: 24, background: '#000', zIndex: 50,
+      }} />
+      {/* status bar (absolute) */}
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 }}>
+        <IOSStatusBar dark={dark} />
+      </div>
+      {/* nav + content */}
+      <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        {title !== undefined && <IOSNavBar title={title} dark={dark} />}
+        <div style={{ flex: 1, overflow: 'auto' }}>{children}</div>
+        {keyboard && <IOSKeyboard dark={dark} />}
+      </div>
+      {/* home indicator — always on top */}
+      <div style={{
+        position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 60,
+        height: 34, display: 'flex', justifyContent: 'center', alignItems: 'flex-end',
+        paddingBottom: 8, pointerEvents: 'none',
+      }}>
+        <div style={{
+          width: 139, height: 5, borderRadius: 100,
+          background: dark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.25)',
+        }} />
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Keyboard — iOS 26 liquid glass
+// ─────────────────────────────────────────────────────────────
+function IOSKeyboard({ dark = false }) {
+  const glyph = dark ? 'rgba(255,255,255,0.7)' : '#595959';
+  const sugg = dark ? 'rgba(255,255,255,0.6)' : '#333';
+  const keyBg = dark ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.85)';
+
+  // special-key icons
+  const icons = {
+    shift: <svg width="19" height="17" viewBox="0 0 19 17"><path d="M9.5 1L1 9.5h4.5V16h8V9.5H18L9.5 1z" fill={glyph}/></svg>,
+    del: <svg width="23" height="17" viewBox="0 0 23 17"><path d="M7 1h13a2 2 0 012 2v11a2 2 0 01-2 2H7l-6-7.5L7 1z" fill="none" stroke={glyph} strokeWidth="1.6" strokeLinejoin="round"/><path d="M10 5l7 7M17 5l-7 7" stroke={glyph} strokeWidth="1.6" strokeLinecap="round"/></svg>,
+    ret: <svg width="20" height="14" viewBox="0 0 20 14"><path d="M18 1v6H4m0 0l4-4M4 7l4 4" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+  };
+
+  const key = (content, { w, flex, ret, fs = 25, k } = {}) => (
+    <div key={k} style={{
+      height: 42, borderRadius: 8.5,
+      flex: flex ? 1 : undefined, width: w, minWidth: 0,
+      background: ret ? '#08f' : keyBg,
+      boxShadow: '0 1px 0 rgba(0,0,0,0.075)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontFamily: '-apple-system, "SF Compact", system-ui',
+      fontSize: fs, fontWeight: 458, color: ret ? '#fff' : glyph,
+    }}>{content}</div>
+  );
+
+  const row = (keys, pad = 0) => (
+    <div style={{ display: 'flex', gap: 6.5, justifyContent: 'center', padding: `0 ${pad}px` }}>
+      {keys.map(l => key(l, { flex: true, k: l }))}
+    </div>
+  );
+
+  return (
+    <div style={{
+      position: 'relative', zIndex: 15, borderRadius: 27, overflow: 'hidden',
+      padding: '11px 0 2px',
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      boxShadow: dark
+        ? '0 -2px 20px rgba(0,0,0,0.09)'
+        : '0 -1px 6px rgba(0,0,0,0.018), 0 -3px 20px rgba(0,0,0,0.012)',
+    }}>
+      {/* liquid glass bg — same recipe as nav pills */}
+      <div style={{
+        position: 'absolute', inset: 0, borderRadius: 27,
+        backdropFilter: 'blur(12px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(12px) saturate(180%)',
+        background: dark ? 'rgba(120,120,128,0.14)' : 'rgba(255,255,255,0.25)',
+      }} />
+      <div style={{
+        position: 'absolute', inset: 0, borderRadius: 27,
+        boxShadow: dark
+          ? 'inset 1.5px 1.5px 1px rgba(255,255,255,0.15)'
+          : 'inset 1.5px 1.5px 1px rgba(255,255,255,0.7), inset -1px -1px 1px rgba(255,255,255,0.4)',
+        border: dark ? '0.5px solid rgba(255,255,255,0.15)' : '0.5px solid rgba(0,0,0,0.06)',
+        pointerEvents: 'none',
+      }} />
+
+      {/* autocorrect bar */}
+      <div style={{
+        display: 'flex', gap: 20, alignItems: 'center',
+        padding: '8px 22px 13px', width: '100%', boxSizing: 'border-box',
+        position: 'relative',
+      }}>
+        {['"The"', 'the', 'to'].map((w, i) => (
+          <React.Fragment key={i}>
+            {i > 0 && <div style={{ width: 1, height: 25, background: '#ccc', opacity: 0.3 }} />}
+            <div style={{
+              flex: 1, textAlign: 'center',
+              fontFamily: '-apple-system, system-ui', fontSize: 17,
+              color: sugg, letterSpacing: -0.43, lineHeight: '22px',
+            }}>{w}</div>
+          </React.Fragment>
+        ))}
+      </div>
+
+      {/* key layout */}
+      <div style={{
+        display: 'flex', flexDirection: 'column', gap: 13,
+        padding: '0 6.5px', width: '100%', boxSizing: 'border-box',
+        position: 'relative',
+      }}>
+        {row(['q','w','e','r','t','y','u','i','o','p'])}
+        {row(['a','s','d','f','g','h','j','k','l'], 20)}
+        <div style={{ display: 'flex', gap: 14.25, alignItems: 'center' }}>
+          {key(icons.shift, { w: 45, k: 'shift' })}
+          <div style={{ display: 'flex', gap: 6.5, flex: 1 }}>
+            {['z','x','c','v','b','n','m'].map(l => key(l, { flex: true, k: l }))}
+          </div>
+          {key(icons.del, { w: 45, k: 'del' })}
+        </div>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          {key('ABC', { w: 92.25, fs: 18, k: 'abc' })}
+          {key('', { flex: true, k: 'space' })}
+          {key(icons.ret, { w: 92.25, ret: true, k: 'ret' })}
+        </div>
+      </div>
+
+      {/* bottom spacer (emoji+mic area, icons omitted) */}
+      <div style={{ height: 56, width: '100%', position: 'relative' }} />
+    </div>
+  );
+}
+
+Object.assign(window, {
+  IOSDevice, IOSStatusBar, IOSNavBar, IOSGlassPill, IOSList, IOSListRow, IOSKeyboard,
+});
+
+
+// ===== data.jsx =====
+// Spark — AI tips & tricks content
+// All tips are for power users / prompt engineers.
+
+window.SPARK_DATA = {
+  today: {
+    id: 'chain-of-density',
+    day: 47,
+    category: 'Summarization',
+    title: 'The Chain-of-Density trick',
+    hook: 'Force models to pack more signal per word — one prompt, five passes.',
+    readTime: 3,
+    hue: 265, // violet
+    body: [
+      'Most summaries are fluffy because the model optimizes for fluency, not information density. Chain-of-Density fixes this by making the model iterate.',
+      'You ask for a short summary. Then you ask it to rewrite the same summary, same length, but add 1–3 missing entities. Repeat 4–5 times.',
+      'By pass five, every word is earning its place. Entities stack. Filler evaporates. You get a denser artifact than a single-shot prompt will ever produce.',
+    ],
+    prompt: `Article: {{article}}
+
+You will generate increasingly concise, entity-dense summaries of the above article.
+
+Repeat the following 2 steps 5 times:
+Step 1: Identify 1–3 informative entities from the article which are missing from the previous summary.
+Step 2: Write a new, denser summary of identical length which covers every entity in the previous summary plus the new ones.
+
+A missing entity is: relevant, specific, novel, faithful, and anywhere in the article.
+
+Guidelines:
+- First summary should be long (~80 words), highly non-specific, containing little information.
+- Make every word count. Rewrite to improve flow and make space for additional entities.
+- Never drop entities. If space runs out, write less fluff.
+- Summaries must be identical length.
+
+Answer as JSON with keys "missing_entities" and "denser_summary".`,
+    source: 'Adams et al., 2023',
+    related: ['zero-shot-cot', 'self-consistency', 'skeleton-of-thought'],
+  },
+
+  tips: [
+    {
+      id: 'chain-of-density',
+      category: 'Summarization',
+      title: 'Chain-of-Density',
+      kicker: 'Pack more signal per word',
+      readTime: 3,
+      hue: 265,
+      shape: 'stack',
+    },
+    {
+      id: 'xml-tags',
+      category: 'Structure',
+      title: 'Wrap inputs in XML tags',
+      kicker: 'Claude parses <document> better than quotes',
+      readTime: 2,
+      hue: 25,
+      shape: 'brackets',
+    },
+    {
+      id: 'role-prefill',
+      category: 'Control',
+      title: 'Prefill the assistant turn',
+      kicker: 'Start its reply for it — skip the preamble',
+      readTime: 2,
+      hue: 200,
+      shape: 'cursor',
+    },
+    {
+      id: 'self-consistency',
+      category: 'Reasoning',
+      title: 'Self-consistency voting',
+      kicker: 'Sample n=5, take the mode',
+      readTime: 4,
+      hue: 140,
+      shape: 'diamond',
+    },
+    {
+      id: 'negative-examples',
+      category: 'Few-shot',
+      title: 'Teach with negative examples',
+      kicker: 'Show what NOT to do, explicitly',
+      readTime: 3,
+      hue: 0,
+      shape: 'cross',
+    },
+    {
+      id: 'token-budget',
+      category: 'Cost',
+      title: 'Give it a token budget',
+      kicker: '"Use at most 200 tokens" actually works',
+      readTime: 2,
+      hue: 45,
+      shape: 'coin',
+    },
+    {
+      id: 'skeleton-of-thought',
+      category: 'Reasoning',
+      title: 'Skeleton-of-Thought',
+      kicker: 'Outline first, fill sections in parallel',
+      readTime: 4,
+      hue: 180,
+      shape: 'skeleton',
+    },
+    {
+      id: 'zero-shot-cot',
+      category: 'Reasoning',
+      title: '"Let\'s think step by step"',
+      kicker: 'The five words that started it all',
+      readTime: 2,
+      hue: 290,
+      shape: 'steps',
+    },
+  ],
+
+  categories: [
+    { id: 'reasoning',     name: 'Reasoning',     count: 23, hue: 140 },
+    { id: 'structure',     name: 'Structure',     count: 14, hue: 25  },
+    { id: 'control',       name: 'Control',       count: 18, hue: 200 },
+    { id: 'summarization', name: 'Summarization', count: 9,  hue: 265 },
+    { id: 'few-shot',      name: 'Few-shot',      count: 12, hue: 0   },
+    { id: 'agents',        name: 'Agents',        count: 16, hue: 45  },
+    { id: 'evals',         name: 'Evaluation',    count: 7,  hue: 180 },
+    { id: 'cost',          name: 'Cost & speed',  count: 11, hue: 290 },
+  ],
+
+  streak: {
+    current: 46,
+    longest: 61,
+    minutesToday: 4,
+    weekDays: [true, true, true, true, true, true, false], // mon..today
+  },
+};
+
+
+// ===== ui.jsx =====
+// Shared UI primitives for Spark
+const SparkColors = {
+  light: {
+    bg: '#F5F3EE',
+    bg2: '#ECE9E1',
+    card: '#FFFFFF',
+    ink: '#1A1A1A',
+    ink2: '#3A3A3A',
+    muted: '#8A8680',
+    line: 'rgba(26,26,26,0.08)',
+    accent: '#5B4CE5',
+    accent2: '#8B7BF5',
+  },
+  dark: {
+    bg: '#0E0D0C',
+    bg2: '#1A1918',
+    card: '#1F1E1C',
+    ink: '#F5F3EE',
+    ink2: '#D4D0C7',
+    muted: '#8A8680',
+    line: 'rgba(245,243,238,0.08)',
+    accent: '#8B7BF5',
+    accent2: '#B0A5FF',
+  },
+};
+
+const serifFamily = '"Instrument Serif", "New York", "Iowan Old Style", Georgia, serif';
+const sansFamily = '-apple-system, "SF Pro Text", system-ui, sans-serif';
+const monoFamily = '"SF Mono", "JetBrains Mono", ui-monospace, Menlo, monospace';
+
+function useC() {
+  const { dark } = React.useContext(ThemeCtx);
+  return dark ? SparkColors.dark : SparkColors.light;
+}
+
+const ThemeCtx = React.createContext({ dark: false });
+
+// A pill button / chip
+function Pill({ children, onClick, active, dark, style }) {
+  const c = dark ? SparkColors.dark : SparkColors.light;
+  return (
+    <button onClick={onClick} style={{
+      border: 'none', outline: 'none', cursor: 'pointer',
+      padding: '8px 14px', borderRadius: 999,
+      fontFamily: sansFamily, fontSize: 13, fontWeight: 600, letterSpacing: -0.1,
+      background: active ? c.ink : c.bg2,
+      color: active ? c.bg : c.ink2,
+      ...style,
+    }}>{children}</button>
+  );
+}
+
+// Thin icons (no emoji). 20x20 default.
+const Icon = {
+  spark: (size=20, color='currentColor') => (
+    <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
+      <path d="M10 2 L11.5 8 L18 10 L11.5 12 L10 18 L8.5 12 L2 10 L8.5 8 Z"
+            fill={color}/>
+    </svg>
+  ),
+  home: (size=22, color='currentColor', filled=false) => (
+    <svg width={size} height={size} viewBox="0 0 22 22" fill="none">
+      <path d="M3 10 L11 3 L19 10 V18 a1 1 0 0 1 -1 1 H4 a1 1 0 0 1 -1 -1 Z"
+            stroke={color} strokeWidth={filled?0:1.8} fill={filled ? color : 'none'} strokeLinejoin="round"/>
+    </svg>
+  ),
+  grid: (size=22, color='currentColor', filled=false) => (
+    <svg width={size} height={size} viewBox="0 0 22 22" fill="none">
+      <rect x="3" y="3" width="7" height="7" rx="1.5" stroke={color} strokeWidth={filled?0:1.8} fill={filled?color:'none'}/>
+      <rect x="12" y="3" width="7" height="7" rx="1.5" stroke={color} strokeWidth={filled?0:1.8} fill={filled?color:'none'}/>
+      <rect x="3" y="12" width="7" height="7" rx="1.5" stroke={color} strokeWidth={filled?0:1.8} fill={filled?color:'none'}/>
+      <rect x="12" y="12" width="7" height="7" rx="1.5" stroke={color} strokeWidth={filled?0:1.8} fill={filled?color:'none'}/>
+    </svg>
+  ),
+  play: (size=22, color='currentColor', filled=false) => (
+    <svg width={size} height={size} viewBox="0 0 22 22" fill="none">
+      <circle cx="11" cy="11" r="8" stroke={color} strokeWidth={filled?0:1.8} fill={filled?color:'none'}/>
+      <path d="M9 7.5 L15 11 L9 14.5 Z" fill={filled?'#fff':color}/>
+    </svg>
+  ),
+  user: (size=22, color='currentColor', filled=false) => (
+    <svg width={size} height={size} viewBox="0 0 22 22" fill="none">
+      <circle cx="11" cy="8" r="3.5" stroke={color} strokeWidth={filled?0:1.8} fill={filled?color:'none'}/>
+      <path d="M4 19 C4 14.5 7.5 13 11 13 C14.5 13 18 14.5 18 19" stroke={color} strokeWidth={filled?0:1.8} fill={filled?color:'none'} strokeLinecap="round"/>
+    </svg>
+  ),
+  bookmark: (size=18, color='currentColor', filled=false) => (
+    <svg width={size} height={size} viewBox="0 0 18 18" fill="none">
+      <path d="M4 2 H14 V16 L9 12.5 L4 16 Z" stroke={color} strokeWidth={filled?0:1.8} fill={filled?color:'none'} strokeLinejoin="round"/>
+    </svg>
+  ),
+  copy: (size=18, color='currentColor') => (
+    <svg width={size} height={size} viewBox="0 0 18 18" fill="none">
+      <rect x="5" y="5" width="10" height="11" rx="2" stroke={color} strokeWidth="1.6" fill="none"/>
+      <path d="M3 13 V3 a1 1 0 0 1 1 -1 H12" stroke={color} strokeWidth="1.6" fill="none" strokeLinecap="round"/>
+    </svg>
+  ),
+  check: (size=16, color='currentColor') => (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none">
+      <path d="M3 8.5 L6.5 12 L13 4.5" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+    </svg>
+  ),
+  clock: (size=14, color='currentColor') => (
+    <svg width={size} height={size} viewBox="0 0 14 14" fill="none">
+      <circle cx="7" cy="7" r="5.5" stroke={color} strokeWidth="1.4" fill="none"/>
+      <path d="M7 4 V7 L9 8.5" stroke={color} strokeWidth="1.4" strokeLinecap="round"/>
+    </svg>
+  ),
+  chevL: (size=18, color='currentColor') => (
+    <svg width={size} height={size} viewBox="0 0 18 18" fill="none">
+      <path d="M11 4 L5 9 L11 14" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+    </svg>
+  ),
+  chevR: (size=18, color='currentColor') => (
+    <svg width={size} height={size} viewBox="0 0 18 18" fill="none">
+      <path d="M7 4 L13 9 L7 14" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+    </svg>
+  ),
+  send: (size=18, color='currentColor') => (
+    <svg width={size} height={size} viewBox="0 0 18 18" fill="none">
+      <path d="M2 9 L15 3 L12 9 L15 15 Z" fill={color}/>
+    </svg>
+  ),
+  close: (size=18, color='currentColor') => (
+    <svg width={size} height={size} viewBox="0 0 18 18" fill="none">
+      <path d="M4 4 L14 14 M14 4 L4 14" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  ),
+  search: (size=18, color='currentColor') => (
+    <svg width={size} height={size} viewBox="0 0 18 18" fill="none">
+      <circle cx="8" cy="8" r="5" stroke={color} strokeWidth="1.8" fill="none"/>
+      <path d="M12 12 L15.5 15.5" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+    </svg>
+  ),
+};
+
+// SparkLogo: a wordmark + mark
+function SparkMark({ size = 32, color }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none">
+      <path d="M16 2 L18 13 L29 15 L18 17 L16 30 L14 17 L3 15 L14 13 Z" fill={color || 'currentColor'}/>
+    </svg>
+  );
+}
+
+Object.assign(window, {
+  SparkColors, ThemeCtx, useC, Pill, Icon, SparkMark,
+  serifFamily, sansFamily, monoFamily,
+});
+
+
+// ===== shapes.jsx =====
+// Spark — cutout-style illustrations on radial pedestal
+// Each shape is a stylized 3D object for the tip cards. No emoji.
+
+function Pedestal({ hue = 265, size = 240, children, dark = false, intensity = 1 }) {
+  const bg = dark
+    ? `radial-gradient(circle at 50% 45%, hsla(${hue}, 45%, 28%, ${0.9 * intensity}) 0%, hsla(${hue}, 30%, 14%, ${0.6 * intensity}) 45%, rgba(0,0,0,0) 72%)`
+    : `radial-gradient(circle at 50% 45%, hsla(${hue}, 70%, 92%, ${0.95 * intensity}) 0%, hsla(${hue}, 50%, 96%, ${0.7 * intensity}) 40%, rgba(255,255,255,0) 72%)`;
+  return (
+    <div style={{
+      width: size, height: size, position: 'relative',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: bg,
+    }}>
+      {children}
+    </div>
+  );
+}
+
+// --- The individual cutout objects --- //
+// Stack of tokens / density
+function ShapeStack({ hue = 265, dark }) {
+  const c1 = `hsl(${hue}, 75%, 58%)`;
+  const c2 = `hsl(${hue}, 70%, 48%)`;
+  const c3 = `hsl(${hue}, 65%, 38%)`;
+  const ink = dark ? '#fff' : '#1A1A1A';
+  return (
+    <svg width="170" height="170" viewBox="0 0 170 170" style={{ filter: 'drop-shadow(0 14px 24px rgba(0,0,0,0.18))' }}>
+      <defs>
+        <linearGradient id="st-a" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0" stopColor={c1}/><stop offset="1" stopColor={c2}/>
+        </linearGradient>
+      </defs>
+      {/* 4 stacked slabs */}
+      {[0,1,2,3].map(i => (
+        <g key={i} transform={`translate(${20 - i*2}, ${110 - i*22})`}>
+          <rect width="110" height="18" rx="4" fill={i === 3 ? c1 : i === 2 ? c2 : c3} opacity={0.92 - i*0.1}/>
+          <rect x="8" y="6" width="30" height="6" rx="2" fill={ink} opacity="0.18"/>
+          <rect x="44" y="6" width="54" height="6" rx="2" fill={ink} opacity="0.1"/>
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+// Angle brackets for XML tags
+function ShapeBrackets({ hue = 25, dark }) {
+  const c1 = `hsl(${hue}, 85%, 60%)`;
+  const c2 = `hsl(${hue}, 78%, 48%)`;
+  return (
+    <svg width="180" height="170" viewBox="0 0 180 170" style={{ filter: 'drop-shadow(0 14px 24px rgba(0,0,0,0.18))' }}>
+      <path d="M60 40 L20 85 L60 130" fill="none" stroke={c2} strokeWidth="16" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M120 40 L160 85 L120 130" fill="none" stroke={c1} strokeWidth="16" strokeLinecap="round" strokeLinejoin="round"/>
+      <rect x="74" y="78" width="32" height="14" rx="3" fill={dark ? '#fff' : '#1A1A1A'} opacity="0.85"/>
+    </svg>
+  );
+}
+
+// Blinking cursor / prefill
+function ShapeCursor({ hue = 200, dark }) {
+  const c1 = `hsl(${hue}, 80%, 58%)`;
+  const c2 = `hsl(${hue}, 70%, 45%)`;
+  const ink = dark ? '#fff' : '#1A1A1A';
+  return (
+    <svg width="170" height="170" viewBox="0 0 170 170" style={{ filter: 'drop-shadow(0 14px 24px rgba(0,0,0,0.18))' }}>
+      <rect x="30" y="45" width="110" height="80" rx="12" fill={c1}/>
+      <rect x="30" y="45" width="110" height="18" rx="12" fill={c2}/>
+      <circle cx="42" cy="54" r="3" fill={ink} opacity="0.35"/>
+      <circle cx="52" cy="54" r="3" fill={ink} opacity="0.35"/>
+      <rect x="42" y="78" width="40" height="5" rx="2" fill={ink} opacity="0.25"/>
+      <rect x="42" y="90" width="60" height="5" rx="2" fill={ink} opacity="0.18"/>
+      <rect x="42" y="102" width="28" height="5" rx="2" fill={ink} opacity="0.18"/>
+      <rect x="74" y="102" width="3" height="10" fill={ink}>
+        <animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite"/>
+      </rect>
+    </svg>
+  );
+}
+
+// Voting diamond
+function ShapeDiamond({ hue = 140, dark }) {
+  const c1 = `hsl(${hue}, 65%, 55%)`;
+  const c2 = `hsl(${hue}, 70%, 42%)`;
+  return (
+    <svg width="170" height="170" viewBox="0 0 170 170" style={{ filter: 'drop-shadow(0 14px 24px rgba(0,0,0,0.18))' }}>
+      <path d="M85 25 L145 85 L85 145 L25 85 Z" fill={c1}/>
+      <path d="M85 25 L145 85 L85 85 Z" fill={c2} opacity="0.7"/>
+      <path d="M85 145 L25 85 L85 85 Z" fill="#000" opacity="0.12"/>
+      <text x="85" y="94" textAnchor="middle" fill="#fff" fontSize="28" fontWeight="700" fontFamily="-apple-system">5×</text>
+    </svg>
+  );
+}
+
+// Cross / negative example
+function ShapeCross({ hue = 0, dark }) {
+  const c1 = `hsl(${hue}, 75%, 60%)`;
+  const c2 = `hsl(${hue}, 70%, 48%)`;
+  return (
+    <svg width="170" height="170" viewBox="0 0 170 170" style={{ filter: 'drop-shadow(0 14px 24px rgba(0,0,0,0.18))' }}>
+      <circle cx="85" cy="85" r="58" fill={c1}/>
+      <circle cx="85" cy="85" r="58" fill={c2} opacity="0.4" transform="translate(0,4)"/>
+      <path d="M60 60 L110 110 M110 60 L60 110" stroke="#fff" strokeWidth="12" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+// Coin / token budget
+function ShapeCoin({ hue = 45, dark }) {
+  const c1 = `hsl(${hue}, 85%, 62%)`;
+  const c2 = `hsl(${hue}, 70%, 45%)`;
+  const ink = dark ? '#2A1A00' : '#4A3500';
+  return (
+    <svg width="170" height="170" viewBox="0 0 170 170" style={{ filter: 'drop-shadow(0 14px 24px rgba(0,0,0,0.18))' }}>
+      <ellipse cx="85" cy="90" rx="55" ry="54" fill={c2}/>
+      <ellipse cx="85" cy="85" rx="55" ry="54" fill={c1}/>
+      <ellipse cx="85" cy="85" rx="44" ry="43" fill={c2} opacity="0.25"/>
+      <text x="85" y="96" textAnchor="middle" fill={ink} fontSize="34" fontWeight="800" fontFamily="-apple-system">T</text>
+    </svg>
+  );
+}
+
+// Skeleton-of-thought: outlined boxes
+function ShapeSkeleton({ hue = 180, dark }) {
+  const c1 = `hsl(${hue}, 60%, 55%)`;
+  const c2 = `hsl(${hue}, 65%, 40%)`;
+  return (
+    <svg width="180" height="170" viewBox="0 0 180 170" style={{ filter: 'drop-shadow(0 14px 24px rgba(0,0,0,0.18))' }}>
+      <rect x="60" y="20" width="60" height="24" rx="5" fill={c1}/>
+      <path d="M90 44 L30 66 M90 44 L90 66 M90 44 L150 66" stroke={c2} strokeWidth="3" strokeLinecap="round"/>
+      <rect x="12" y="66" width="50" height="22" rx="5" fill={c2}/>
+      <rect x="65" y="66" width="50" height="22" rx="5" fill={c2} opacity="0.7"/>
+      <rect x="118" y="66" width="50" height="22" rx="5" fill={c2} opacity="0.5"/>
+      <rect x="18" y="100" width="38" height="6" rx="2" fill={c1} opacity="0.4"/>
+      <rect x="18" y="112" width="38" height="6" rx="2" fill={c1} opacity="0.4"/>
+      <rect x="71" y="100" width="38" height="6" rx="2" fill={c1} opacity="0.4"/>
+      <rect x="71" y="112" width="38" height="6" rx="2" fill={c1} opacity="0.4"/>
+      <rect x="124" y="100" width="38" height="6" rx="2" fill={c1} opacity="0.4"/>
+      <rect x="124" y="112" width="38" height="6" rx="2" fill={c1} opacity="0.4"/>
+    </svg>
+  );
+}
+
+// Steps
+function ShapeSteps({ hue = 290, dark }) {
+  const c1 = `hsl(${hue}, 70%, 62%)`;
+  const c2 = `hsl(${hue}, 65%, 48%)`;
+  return (
+    <svg width="170" height="170" viewBox="0 0 170 170" style={{ filter: 'drop-shadow(0 14px 24px rgba(0,0,0,0.18))' }}>
+      {[0,1,2,3].map(i => (
+        <rect key={i} x={30 + i*26} y={30 + i*22} width="40" height={110 - i*22} rx="4"
+              fill={i % 2 === 0 ? c1 : c2}/>
+      ))}
+    </svg>
+  );
+}
+
+// Flame for streaks
+function ShapeFlame({ hue = 20, dark, size = 120 }) {
+  const c1 = `hsl(${hue}, 95%, 62%)`;
+  const c2 = `hsl(${hue + 15}, 95%, 55%)`;
+  const c3 = `hsl(${hue + 30}, 95%, 70%)`;
+  return (
+    <svg width={size} height={size * 1.1} viewBox="0 0 120 130" style={{ filter: 'drop-shadow(0 16px 28px rgba(230,80,0,0.3))' }}>
+      <path d="M60 10 C30 40 25 65 30 85 C35 110 50 122 60 122 C70 122 85 110 90 85 C95 65 85 50 75 40 C72 48 68 52 62 52 C58 48 60 30 60 10 Z" fill={c1}/>
+      <path d="M60 40 C45 55 42 72 46 88 C50 106 55 115 60 115 C65 115 75 106 79 88 C82 72 76 62 70 55 C68 62 64 64 60 64 C58 60 60 50 60 40 Z" fill={c2}/>
+      <path d="M60 70 C52 78 50 90 54 102 C57 112 58 115 60 115 C62 115 68 110 71 100 C73 92 70 84 66 78 C65 82 62 84 60 84 Z" fill={c3}/>
+    </svg>
+  );
+}
+
+const SHAPES = {
+  stack: ShapeStack,
+  brackets: ShapeBrackets,
+  cursor: ShapeCursor,
+  diamond: ShapeDiamond,
+  cross: ShapeCross,
+  coin: ShapeCoin,
+  skeleton: ShapeSkeleton,
+  steps: ShapeSteps,
+};
+
+function TipShape({ name, hue, dark, size = 240 }) {
+  const Cmp = SHAPES[name] || ShapeStack;
+  return (
+    <Pedestal hue={hue} dark={dark} size={size}>
+      <Cmp hue={hue} dark={dark}/>
+    </Pedestal>
+  );
+}
+
+Object.assign(window, { TipShape, Pedestal, ShapeFlame });
+
+
+// ===== onboarding.jsx =====
+// Spark — Onboarding (4 screens)
+
+function OnboardingFlow({ onFinish, dark }) {
+  const [step, setStep] = React.useState(0);
+  const c = dark ? SparkColors.dark : SparkColors.light;
+  const steps = [OnbWelcome, OnbGoal, OnbLevel, OnbReminder];
+  const Step = steps[step];
+  const isLast = step === steps.length - 1;
+  return (
+    <div style={{
+      position: 'absolute', inset: 0, background: c.bg,
+      display: 'flex', flexDirection: 'column',
+      paddingTop: 60, // status bar
+    }}>
+      {/* progress dots */}
+      <div style={{
+        display: 'flex', justifyContent: 'center', gap: 6,
+        padding: '14px 0',
+      }}>
+        {steps.map((_, i) => (
+          <div key={i} style={{
+            width: i === step ? 24 : 6, height: 6, borderRadius: 3,
+            background: i <= step ? c.ink : c.line,
+            transition: 'all .3s',
+          }}/>
+        ))}
+      </div>
+
+      <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
+        <Step c={c} dark={dark}/>
+      </div>
+
+      {/* footer */}
+      <div style={{
+        padding: '16px 20px 40px', display: 'flex', gap: 10, alignItems: 'center',
+      }}>
+        {step > 0 ? (
+          <button onClick={() => setStep(s => s - 1)} style={{
+            border: 'none', background: c.bg2, color: c.ink,
+            height: 54, width: 54, borderRadius: 27, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>{Icon.chevL(22, c.ink)}</button>
+        ) : (
+          <button onClick={onFinish} style={{
+            border: 'none', background: 'transparent', color: c.muted,
+            fontFamily: sansFamily, fontSize: 15, fontWeight: 500,
+            cursor: 'pointer', padding: '0 16px', height: 54,
+          }}>Skip</button>
+        )}
+        <button onClick={() => isLast ? onFinish() : setStep(s => s + 1)} style={{
+          flex: 1, height: 54, borderRadius: 27, border: 'none', cursor: 'pointer',
+          background: c.ink, color: c.bg,
+          fontFamily: sansFamily, fontSize: 16, fontWeight: 600, letterSpacing: -0.1,
+        }}>{isLast ? 'Start learning' : 'Continue'}</button>
+      </div>
+    </div>
+  );
+}
+
+function OnbWelcome({ c, dark }) {
+  return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0 28px' }}>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+        <div style={{
+          width: 260, height: 260, borderRadius: '50%',
+          background: `radial-gradient(circle at 50% 45%, hsla(265, 80%, 92%, 1) 0%, hsla(265, 60%, 96%, 0.6) 45%, ${c.bg} 75%)`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          position: 'relative',
+        }}>
+          <div style={{
+            filter: 'drop-shadow(0 16px 28px rgba(91,76,229,0.28))',
+            animation: 'sparkSpin 14s linear infinite',
+          }}>
+            <SparkMark size={110} color="#5B4CE5"/>
+          </div>
+          <style>{`@keyframes sparkSpin { to { transform: rotate(360deg); }}`}</style>
+        </div>
+      </div>
+      <div style={{ textAlign: 'center', paddingBottom: 40 }}>
+        <div style={{
+          fontFamily: serifFamily, fontSize: 44, lineHeight: 1.0,
+          color: c.ink, letterSpacing: -1,
+        }}>
+          A new AI trick<br/>every morning.
+        </div>
+        <div style={{
+          marginTop: 16, fontFamily: sansFamily, fontSize: 16, lineHeight: 1.45,
+          color: c.ink2, maxWidth: 300, margin: '16px auto 0',
+        }}>
+          Three minutes. One tactic you can actually use today. Built for prompt engineers.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function OnbGoal({ c, dark }) {
+  const goals = [
+    { id: 'ship',  title: 'Ship better prompts',    sub: 'At work — product, code, research' },
+    { id: 'craft', title: 'Sharpen my craft',        sub: 'Stay on the frontier of the field' },
+    { id: 'teach', title: 'Teach my team',           sub: 'Build institutional prompting skills' },
+    { id: 'build', title: 'Build agents & pipelines',sub: 'Multi-step, tool-using systems' },
+  ];
+  const [sel, setSel] = React.useState('ship');
+  return (
+    <div style={{ padding: '10px 24px', height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ fontFamily: serifFamily, fontSize: 32, lineHeight: 1.05, color: c.ink, letterSpacing: -0.6 }}>
+        What brings you here?
+      </div>
+      <div style={{ marginTop: 6, color: c.muted, fontSize: 14, fontFamily: sansFamily }}>
+        We'll tune your feed.
+      </div>
+      <div style={{ marginTop: 28, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {goals.map(g => {
+          const active = sel === g.id;
+          return (
+            <button key={g.id} onClick={() => setSel(g.id)} style={{
+              textAlign: 'left', padding: '16px 18px', borderRadius: 18,
+              background: active ? c.ink : c.card,
+              border: active ? 'none' : `1px solid ${c.line}`,
+              color: active ? c.bg : c.ink,
+              display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer',
+              fontFamily: sansFamily,
+            }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 16, fontWeight: 600, letterSpacing: -0.2 }}>{g.title}</div>
+                <div style={{ fontSize: 13, color: active ? 'rgba(245,243,238,0.65)' : c.muted, marginTop: 2 }}>{g.sub}</div>
+              </div>
+              <div style={{
+                width: 22, height: 22, borderRadius: 11,
+                background: active ? c.bg : 'transparent',
+                border: active ? 'none' : `1.5px solid ${c.line}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                {active && Icon.check(14, c.ink)}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function OnbLevel({ c, dark }) {
+  const levels = [
+    { id: 'curious', title: 'Curious',   sub: 'Know the basics',           hue: 200 },
+    { id: 'fluent',  title: 'Fluent',    sub: 'Prompt daily at work',      hue: 140 },
+    { id: 'expert',  title: 'Expert',    sub: 'Research papers & evals',   hue: 265 },
+  ];
+  const [sel, setSel] = React.useState('fluent');
+  return (
+    <div style={{ padding: '10px 24px', height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ fontFamily: serifFamily, fontSize: 32, lineHeight: 1.05, color: c.ink, letterSpacing: -0.6 }}>
+        How deep should we go?
+      </div>
+      <div style={{ marginTop: 6, color: c.muted, fontSize: 14, fontFamily: sansFamily }}>
+        You can always change this.
+      </div>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 14, marginTop: 20 }}>
+        {levels.map((l, i) => {
+          const active = sel === l.id;
+          return (
+            <button key={l.id} onClick={() => setSel(l.id)} style={{
+              textAlign: 'left', padding: '22px 22px', borderRadius: 22,
+              background: active ? `hsl(${l.hue}, 70%, 95%)` : c.card,
+              border: active ? `1.5px solid hsl(${l.hue}, 60%, 55%)` : `1px solid ${c.line}`,
+              cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 16,
+              fontFamily: sansFamily, color: c.ink,
+              transform: active ? 'scale(1.02)' : 'scale(1)', transition: 'all .2s',
+            }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: '50%',
+                background: `radial-gradient(circle at 40% 40%, hsl(${l.hue}, 80%, 70%), hsl(${l.hue}, 70%, 50%))`,
+                boxShadow: `0 8px 16px hsla(${l.hue}, 70%, 50%, 0.25)`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: '#fff', fontWeight: 700, fontSize: 18,
+              }}>{i+1}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: -0.3 }}>{l.title}</div>
+                <div style={{ fontSize: 13, color: c.muted }}>{l.sub}</div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function OnbReminder({ c, dark }) {
+  const times = ['7:00 AM', '9:00 AM', '12:00 PM', '6:00 PM', '9:00 PM'];
+  const [sel, setSel] = React.useState('9:00 AM');
+  return (
+    <div style={{ padding: '10px 24px', height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ fontFamily: serifFamily, fontSize: 32, lineHeight: 1.05, color: c.ink, letterSpacing: -0.6 }}>
+        When should we<br/>nudge you?
+      </div>
+      <div style={{ marginTop: 6, color: c.muted, fontSize: 14, fontFamily: sansFamily }}>
+        One notification. No spam.
+      </div>
+
+      {/* fake mock notification */}
+      <div style={{
+        marginTop: 28, padding: 14, borderRadius: 18,
+        background: c.card, border: `1px solid ${c.line}`,
+        display: 'flex', gap: 12, alignItems: 'flex-start',
+        boxShadow: '0 6px 18px rgba(0,0,0,0.04)',
+      }}>
+        <div style={{
+          width: 38, height: 38, borderRadius: 9,
+          background: '#5B4CE5', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          flexShrink: 0,
+        }}>
+          <SparkMark size={22} color="#fff"/>
+        </div>
+        <div style={{ flex: 1, fontFamily: sansFamily }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: c.ink }}>SPARK</div>
+            <div style={{ fontSize: 12, color: c.muted }}>now</div>
+          </div>
+          <div style={{ fontSize: 14, color: c.ink, fontWeight: 600, marginTop: 2, letterSpacing: -0.1 }}>
+            Today's trick: Chain-of-Density
+          </div>
+          <div style={{ fontSize: 13, color: c.ink2, marginTop: 1 }}>
+            Pack more signal per word. 3 min read.
+          </div>
+        </div>
+      </div>
+
+      <div style={{ marginTop: 28, fontSize: 13, color: c.muted, fontFamily: sansFamily, fontWeight: 600, letterSpacing: 0.5, textTransform: 'uppercase' }}>
+        Daily time
+      </div>
+      <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        {times.map(t => (
+          <Pill key={t} active={sel === t} onClick={() => setSel(t)} dark={dark}>
+            {t}
+          </Pill>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { OnboardingFlow });
+
+
+// ===== home.jsx =====
+// Spark — Home (Today) screen
+
+function HomeScreen({ onOpenTip, onOpenDeck, streak, today, dark }) {
+  const c = dark ? SparkColors.dark : SparkColors.light;
+  const hour = new Date().getHours();
+  const greet = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+
+  return (
+    <div style={{ padding: '70px 0 110px', minHeight: '100%', background: c.bg }}>
+      {/* Top bar: greeting + streak */}
+      <div style={{ padding: '8px 20px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div>
+          <div style={{ fontFamily: sansFamily, fontSize: 13, color: c.muted, letterSpacing: -0.1 }}>
+            {greet}, Alex
+          </div>
+          <div style={{ fontFamily: serifFamily, fontSize: 30, color: c.ink, letterSpacing: -0.5, marginTop: 2 }}>
+            Today's trick
+          </div>
+        </div>
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 6,
+          padding: '6px 12px 6px 8px', borderRadius: 999,
+          background: c.card, border: `1px solid ${c.line}`,
+        }}>
+          <div style={{ width: 24, height: 26 }}>
+            <ShapeFlame size={26}/>
+          </div>
+          <div style={{ fontFamily: sansFamily, fontWeight: 700, color: c.ink, fontSize: 15 }}>
+            {streak.current}
+          </div>
+        </div>
+      </div>
+
+      {/* Tip of the day — editorial hero card */}
+      <div style={{ padding: '22px 20px 0' }}>
+        <button onClick={() => onOpenTip(today.id)} style={{
+          width: '100%', textAlign: 'left', border: 'none', cursor: 'pointer',
+          padding: 0, borderRadius: 28, overflow: 'hidden',
+          background: c.card, boxShadow: '0 14px 40px rgba(0,0,0,0.06), 0 2px 6px rgba(0,0,0,0.03)',
+          border: `1px solid ${c.line}`,
+        }}>
+          {/* Pedestal illustration */}
+          <div style={{ position: 'relative', height: 240, overflow: 'hidden', background: c.bg2 }}>
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <TipShape name="stack" hue={today.hue} dark={dark} size={300}/>
+            </div>
+            <div style={{ position: 'absolute', top: 14, left: 14, display: 'flex', gap: 6, alignItems: 'center' }}>
+              <div style={{
+                padding: '5px 10px', borderRadius: 999,
+                background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(10px)',
+                fontFamily: sansFamily, fontSize: 11, fontWeight: 700, letterSpacing: 0.5,
+                color: '#1A1A1A', textTransform: 'uppercase',
+              }}>Day {today.day}</div>
+              <div style={{
+                padding: '5px 10px', borderRadius: 999,
+                background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(10px)',
+                fontFamily: sansFamily, fontSize: 11, fontWeight: 600, letterSpacing: 0.3,
+                color: `hsl(${today.hue}, 60%, 35%)`,
+              }}>{today.category}</div>
+            </div>
+          </div>
+          <div style={{ padding: '20px 22px 22px' }}>
+            <div style={{ fontFamily: serifFamily, fontSize: 30, lineHeight: 1.05, color: c.ink, letterSpacing: -0.6 }}>
+              {today.title}
+            </div>
+            <div style={{ marginTop: 8, fontFamily: sansFamily, fontSize: 14.5, lineHeight: 1.45, color: c.ink2 }}>
+              {today.hook}
+            </div>
+            <div style={{ marginTop: 14, display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{
+                padding: '10px 18px', borderRadius: 999, background: c.ink, color: c.bg,
+                fontFamily: sansFamily, fontSize: 14, fontWeight: 600,
+                display: 'flex', alignItems: 'center', gap: 6,
+              }}>
+                Read now {Icon.chevR(14, c.bg)}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, color: c.muted, fontSize: 13, fontFamily: sansFamily }}>
+                {Icon.clock(13, c.muted)} {today.readTime} min
+              </div>
+            </div>
+          </div>
+        </button>
+      </div>
+
+      {/* Streak / week strip */}
+      <div style={{ padding: '24px 20px 0' }}>
+        <div style={{
+          padding: '16px 18px', borderRadius: 22,
+          background: c.card, border: `1px solid ${c.line}`,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <div style={{ fontFamily: sansFamily, fontSize: 14, fontWeight: 600, color: c.ink, letterSpacing: -0.2 }}>
+              {streak.current} day streak
+            </div>
+            <div style={{ fontFamily: sansFamily, fontSize: 12, color: c.muted }}>
+              Best: {streak.longest}
+            </div>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            {['M','T','W','T','F','S','S'].map((d, i) => {
+              const done = streak.weekDays[i];
+              const today = i === 6;
+              return (
+                <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                  <div style={{
+                    width: 30, height: 30, borderRadius: '50%',
+                    background: done ? '#5B4CE5' : today ? 'transparent' : c.bg2,
+                    border: today && !done ? `1.5px dashed ${c.muted}` : 'none',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: '#fff',
+                  }}>
+                    {done && Icon.check(14, '#fff')}
+                  </div>
+                  <div style={{ fontFamily: sansFamily, fontSize: 11, color: c.muted, fontWeight: 600 }}>{d}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Continue where you left off / deck */}
+      <div style={{ padding: '24px 20px 0' }}>
+        <div style={{
+          fontFamily: sansFamily, fontSize: 12, fontWeight: 700, letterSpacing: 0.8,
+          color: c.muted, textTransform: 'uppercase', marginBottom: 10,
+        }}>The deck</div>
+        <button onClick={onOpenDeck} style={{
+          width: '100%', textAlign: 'left', border: 'none', cursor: 'pointer',
+          padding: '18px 20px', borderRadius: 22, display: 'flex', alignItems: 'center', gap: 14,
+          background: `linear-gradient(135deg, #5B4CE5 0%, #8B7BF5 100%)`,
+          color: '#fff', fontFamily: sansFamily,
+          boxShadow: '0 14px 30px rgba(91,76,229,0.3)',
+        }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 17, fontWeight: 600, letterSpacing: -0.3 }}>Swipe through 12 tricks</div>
+            <div style={{ fontSize: 13, opacity: 0.85, marginTop: 2 }}>
+              Quick review — swipe to save or skip
+            </div>
+          </div>
+          <div style={{
+            width: 44, height: 44, borderRadius: '50%',
+            background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>{Icon.chevR(20, '#fff')}</div>
+        </button>
+      </div>
+
+      {/* Recent tips */}
+      <RecentStrip onOpenTip={onOpenTip} dark={dark}/>
+    </div>
+  );
+}
+
+function RecentStrip({ onOpenTip, dark }) {
+  const c = dark ? SparkColors.dark : SparkColors.light;
+  const tips = SPARK_DATA.tips.slice(1, 5);
+  return (
+    <div style={{ padding: '24px 0 0' }}>
+      <div style={{
+        padding: '0 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        marginBottom: 10,
+      }}>
+        <div style={{
+          fontFamily: sansFamily, fontSize: 12, fontWeight: 700, letterSpacing: 0.8,
+          color: c.muted, textTransform: 'uppercase',
+        }}>Recent</div>
+        <div style={{ fontFamily: sansFamily, fontSize: 13, color: c.accent, fontWeight: 600 }}>See all</div>
+      </div>
+      <div style={{
+        display: 'flex', gap: 12, overflowX: 'auto', padding: '0 20px 4px',
+        scrollbarWidth: 'none',
+      }}>
+        {tips.map(t => (
+          <button key={t.id} onClick={() => onOpenTip(t.id)} style={{
+            flexShrink: 0, width: 180, border: 'none', cursor: 'pointer',
+            padding: 0, borderRadius: 20, overflow: 'hidden',
+            background: c.card, border: `1px solid ${c.line}`,
+            textAlign: 'left',
+          }}>
+            <div style={{ height: 120, background: c.bg2, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+              <TipShape name={t.shape} hue={t.hue} dark={dark} size={180}/>
+            </div>
+            <div style={{ padding: '10px 12px 14px' }}>
+              <div style={{ fontFamily: sansFamily, fontSize: 10.5, fontWeight: 700, letterSpacing: 0.4,
+                color: `hsl(${t.hue}, 55%, 40%)`, textTransform: 'uppercase' }}>{t.category}</div>
+              <div style={{ fontFamily: serifFamily, fontSize: 17, lineHeight: 1.1, color: c.ink, marginTop: 4, letterSpacing: -0.3 }}>
+                {t.title}
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { HomeScreen });
+
+
+// ===== deck.jsx =====
+// Spark — Swipeable deck of tips (Tinder-style)
+
+function DeckScreen({ onClose, onOpenTip, dark }) {
+  const c = dark ? SparkColors.dark : SparkColors.light;
+  const allTips = SPARK_DATA.tips;
+  const [idx, setIdx] = React.useState(0);
+  const [drag, setDrag] = React.useState({ x: 0, y: 0, active: false });
+  const [lastAction, setLastAction] = React.useState(null); // 'save' | 'skip'
+  const [saved, setSaved] = React.useState([]);
+
+  const cardRef = React.useRef(null);
+  const startRef = React.useRef(null);
+
+  const onStart = (e) => {
+    const p = e.touches ? e.touches[0] : e;
+    startRef.current = { x: p.clientX, y: p.clientY };
+    setDrag({ x: 0, y: 0, active: true });
+  };
+  const onMove = (e) => {
+    if (!startRef.current) return;
+    const p = e.touches ? e.touches[0] : e;
+    setDrag({ x: p.clientX - startRef.current.x, y: p.clientY - startRef.current.y, active: true });
+  };
+  const onEnd = () => {
+    if (!startRef.current) return;
+    const { x } = drag;
+    if (Math.abs(x) > 100) {
+      const action = x > 0 ? 'save' : 'skip';
+      setLastAction(action);
+      if (action === 'save') setSaved(s => [...s, allTips[idx].id]);
+      // animate off
+      setDrag({ x: x > 0 ? 500 : -500, y: drag.y, active: false });
+      setTimeout(() => {
+        setIdx(i => Math.min(i + 1, allTips.length));
+        setDrag({ x: 0, y: 0, active: false });
+      }, 200);
+    } else {
+      setDrag({ x: 0, y: 0, active: false });
+    }
+    startRef.current = null;
+  };
+
+  const done = idx >= allTips.length;
+  const tip = allTips[idx];
+  const next = allTips[idx + 1];
+  const rot = drag.x / 20;
+  const saveOp = Math.max(0, Math.min(1, drag.x / 120));
+  const skipOp = Math.max(0, Math.min(1, -drag.x / 120));
+
+  return (
+    <div style={{ position: 'absolute', inset: 0, background: c.bg, display: 'flex', flexDirection: 'column', paddingTop: 54 }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px 10px' }}>
+        <button onClick={onClose} style={{ border: 'none', background: c.bg2, width: 40, height: 40, borderRadius: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+          {Icon.close(18, c.ink)}
+        </button>
+        <div style={{ fontFamily: sansFamily, fontSize: 14, fontWeight: 600, color: c.ink }}>
+          {done ? 'Nice work' : `${idx + 1} / ${allTips.length}`}
+        </div>
+        <div style={{ width: 40, height: 40, borderRadius: 20, background: c.bg2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {Icon.bookmark(16, c.ink)}
+        </div>
+      </div>
+      {/* Progress */}
+      <div style={{ padding: '0 20px' }}>
+        <div style={{ height: 3, background: c.bg2, borderRadius: 3, overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: `${((done ? allTips.length : idx) / allTips.length) * 100}%`, background: c.ink, transition: 'width .3s' }}/>
+        </div>
+      </div>
+
+      {/* Cards stage */}
+      <div style={{ flex: 1, position: 'relative', padding: '20px 20px 0' }}>
+        {done ? <DeckDone c={c} saved={saved} onClose={onClose}/> : (
+          <>
+            {/* next card (behind) */}
+            {next && (
+              <DeckCard tip={next} c={c} dark={dark} style={{
+                position: 'absolute', inset: '20px 20px 0', transform: 'scale(0.94) translateY(10px)', opacity: 0.6,
+              }}/>
+            )}
+            {/* active card */}
+            <div
+              onMouseDown={onStart} onMouseMove={drag.active ? onMove : null} onMouseUp={onEnd} onMouseLeave={drag.active ? onEnd : null}
+              onTouchStart={onStart} onTouchMove={onMove} onTouchEnd={onEnd}
+              style={{
+                position: 'absolute', inset: '20px 20px 0',
+                transform: `translate(${drag.x}px, ${drag.y}px) rotate(${rot}deg)`,
+                transition: startRef.current ? 'none' : 'transform .25s',
+                cursor: 'grab',
+              }}>
+              <DeckCard tip={tip} c={c} dark={dark} saveOp={saveOp} skipOp={skipOp} onOpen={() => onOpenTip(tip.id)}/>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Actions */}
+      {!done && (
+        <div style={{ padding: '16px 40px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <ActionBtn label="Skip" color="#E54C4C" onClick={() => { startRef.current = {x:0,y:0}; setDrag({x:-120,y:0,active:true}); setTimeout(onEnd, 10); }}>
+            {Icon.close(22, '#E54C4C')}
+          </ActionBtn>
+          <ActionBtn label="Try it" color="#5B4CE5" big onClick={() => onOpenTip(tip.id)}>
+            {Icon.play(28, '#fff', true)}
+          </ActionBtn>
+          <ActionBtn label="Save" color="#2BB673" onClick={() => { startRef.current = {x:0,y:0}; setDrag({x:120,y:0,active:true}); setTimeout(onEnd, 10); }}>
+            {Icon.bookmark(20, '#2BB673', false)}
+          </ActionBtn>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ActionBtn({ children, label, color, big, onClick }) {
+  const size = big ? 68 : 56;
+  return (
+    <button onClick={onClick} style={{
+      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+      border: 'none', background: 'transparent', cursor: 'pointer', padding: 0,
+    }}>
+      <div style={{
+        width: size, height: size, borderRadius: '50%',
+        background: big ? color : '#fff',
+        border: big ? 'none' : `2px solid ${color}`,
+        boxShadow: big ? `0 10px 24px ${color}55` : '0 4px 12px rgba(0,0,0,0.08)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>{children}</div>
+      <div style={{ fontFamily: sansFamily, fontSize: 11, fontWeight: 600, color: '#8A8680', letterSpacing: 0.3 }}>{label}</div>
+    </button>
+  );
+}
+
+function DeckCard({ tip, c, dark, style, saveOp = 0, skipOp = 0, onOpen }) {
+  return (
+    <div style={{
+      background: c.card, borderRadius: 28,
+      border: `1px solid ${c.line}`, overflow: 'hidden',
+      boxShadow: '0 20px 50px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)',
+      height: '100%', display: 'flex', flexDirection: 'column',
+      position: 'relative',
+      ...style,
+    }}>
+      {/* SAVE/SKIP stamps */}
+      <div style={{
+        position: 'absolute', top: 30, left: 20, zIndex: 5, opacity: skipOp,
+        padding: '8px 18px', border: '3px solid #E54C4C', borderRadius: 10, color: '#E54C4C',
+        fontFamily: sansFamily, fontSize: 20, fontWeight: 800, letterSpacing: 2,
+        transform: 'rotate(-14deg)',
+      }}>SKIP</div>
+      <div style={{
+        position: 'absolute', top: 30, right: 20, zIndex: 5, opacity: saveOp,
+        padding: '8px 18px', border: '3px solid #2BB673', borderRadius: 10, color: '#2BB673',
+        fontFamily: sansFamily, fontSize: 20, fontWeight: 800, letterSpacing: 2,
+        transform: 'rotate(14deg)',
+      }}>SAVE</div>
+
+      <div style={{ flex: 1, position: 'relative', background: c.bg2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <TipShape name={tip.shape} hue={tip.hue} dark={dark} size={320}/>
+        <div style={{ position: 'absolute', top: 18, left: 18 }}>
+          <div style={{
+            padding: '5px 10px', borderRadius: 999,
+            background: 'rgba(255,255,255,0.9)', fontFamily: sansFamily, fontSize: 11, fontWeight: 700,
+            color: `hsl(${tip.hue}, 55%, 40%)`, letterSpacing: 0.4, textTransform: 'uppercase',
+          }}>{tip.category}</div>
+        </div>
+      </div>
+      <div style={{ padding: '22px 24px 28px' }}>
+        <div style={{ fontFamily: serifFamily, fontSize: 30, lineHeight: 1.05, color: c.ink, letterSpacing: -0.6 }}>
+          {tip.title}
+        </div>
+        <div style={{ marginTop: 8, fontFamily: sansFamily, fontSize: 15, lineHeight: 1.4, color: c.ink2 }}>
+          {tip.kicker}
+        </div>
+        <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 6, color: c.muted, fontSize: 12, fontFamily: sansFamily }}>
+          {Icon.clock(12, c.muted)} {tip.readTime} min read
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DeckDone({ c, saved, onClose }) {
+  return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 30px', textAlign: 'center' }}>
+      <div style={{ filter: 'drop-shadow(0 16px 28px rgba(91,76,229,0.28))' }}>
+        <SparkMark size={80} color="#5B4CE5"/>
+      </div>
+      <div style={{ marginTop: 28, fontFamily: serifFamily, fontSize: 34, letterSpacing: -0.6, color: c.ink }}>
+        That's the deck.
+      </div>
+      <div style={{ marginTop: 10, fontFamily: sansFamily, fontSize: 15, color: c.ink2, maxWidth: 280, lineHeight: 1.4 }}>
+        You saved {saved.length} trick{saved.length === 1 ? '' : 's'} to your library. Come back tomorrow for a fresh one.
+      </div>
+      <button onClick={onClose} style={{
+        marginTop: 28, padding: '14px 28px', borderRadius: 28, background: c.ink, color: c.bg,
+        border: 'none', fontFamily: sansFamily, fontSize: 15, fontWeight: 600, cursor: 'pointer',
+      }}>Back to home</button>
+    </div>
+  );
+}
+
+Object.assign(window, { DeckScreen });
+
+
+// ===== detail.jsx =====
+// Spark — Tip detail (reader) with copy-prompt-to-clipboard
+
+function TipDetailScreen({ tipId, onClose, onTryLive, dark }) {
+  const c = dark ? SparkColors.dark : SparkColors.light;
+  // Build a full tip by merging today (full body) with card meta
+  const meta = SPARK_DATA.tips.find(t => t.id === tipId) || SPARK_DATA.tips[0];
+  const isFeature = tipId === SPARK_DATA.today.id;
+  const full = isFeature ? SPARK_DATA.today : makeSynthBody(meta);
+
+  const [copied, setCopied] = React.useState(false);
+  const [saved, setSaved] = React.useState(false);
+  const scrollRef = React.useRef(null);
+  const [scrollY, setScrollY] = React.useState(0);
+
+  const copy = () => {
+    try { navigator.clipboard.writeText(full.prompt); } catch (e) {}
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1800);
+  };
+
+  return (
+    <div style={{ position: 'absolute', inset: 0, background: c.bg, display: 'flex', flexDirection: 'column' }}>
+      {/* sticky top bar */}
+      <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10,
+        paddingTop: 54, paddingBottom: 10,
+        background: scrollY > 80 ? c.bg : 'transparent',
+        transition: 'background .2s',
+        borderBottom: scrollY > 80 ? `1px solid ${c.line}` : '1px solid transparent',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px' }}>
+          <button onClick={onClose} style={{ border: 'none', background: scrollY > 80 ? 'transparent' : 'rgba(255,255,255,0.9)', width: 40, height: 40, borderRadius: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(10px)' }}>
+            {Icon.chevL(20, c.ink)}
+          </button>
+          <div style={{
+            fontFamily: sansFamily, fontSize: 14, fontWeight: 600, color: c.ink,
+            opacity: scrollY > 80 ? 1 : 0, transition: 'opacity .2s',
+          }}>{meta.title}</div>
+          <button onClick={() => setSaved(s => !s)} style={{ border: 'none', background: scrollY > 80 ? 'transparent' : 'rgba(255,255,255,0.9)', width: 40, height: 40, borderRadius: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(10px)' }}>
+            {Icon.bookmark(18, saved ? '#5B4CE5' : c.ink, saved)}
+          </button>
+        </div>
+      </div>
+
+      <div ref={scrollRef} onScroll={(e) => setScrollY(e.target.scrollTop)} style={{ flex: 1, overflowY: 'auto', paddingBottom: 120 }}>
+        {/* Hero pedestal */}
+        <div style={{
+          height: 320, background: c.bg2, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative',
+        }}>
+          <TipShape name={meta.shape} hue={meta.hue} dark={dark} size={360}/>
+        </div>
+
+        {/* Body */}
+        <div style={{ padding: '28px 24px 0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: sansFamily, fontSize: 11.5, fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase' }}>
+            <span style={{ color: `hsl(${meta.hue}, 55%, 40%)` }}>{meta.category}</span>
+            <span style={{ color: c.muted }}>·</span>
+            <span style={{ color: c.muted, display: 'flex', alignItems: 'center', gap: 4 }}>
+              {Icon.clock(12, c.muted)} {meta.readTime} min read
+            </span>
+          </div>
+          <div style={{
+            marginTop: 10, fontFamily: serifFamily, fontSize: 36, lineHeight: 1.02, color: c.ink, letterSpacing: -0.8,
+          }}>{meta.title}</div>
+          <div style={{ marginTop: 12, fontFamily: serifFamily, fontStyle: 'italic', fontSize: 19, lineHeight: 1.4, color: c.ink2 }}>
+            {isFeature ? full.hook : full.hook}
+          </div>
+
+          {full.body.map((p, i) => (
+            <p key={i} style={{
+              marginTop: 20, fontFamily: serifFamily, fontSize: 18, lineHeight: 1.55, color: c.ink,
+              letterSpacing: -0.1, textWrap: 'pretty',
+            }}>{p}</p>
+          ))}
+        </div>
+
+        {/* The Prompt block */}
+        <div style={{ padding: '28px 16px 0' }}>
+          <div style={{
+            borderRadius: 22, overflow: 'hidden',
+            background: dark ? '#0A0A0A' : '#121212',
+            border: `1px solid ${dark ? 'rgba(255,255,255,0.08)' : 'transparent'}`,
+          }}>
+            <div style={{
+              padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              borderBottom: '1px solid rgba(255,255,255,0.08)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 20, height: 20, borderRadius: 5, background: '#5B4CE5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <SparkMark size={12} color="#fff"/>
+                </div>
+                <div style={{ fontFamily: sansFamily, fontSize: 13, color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>
+                  The prompt
+                </div>
+              </div>
+              <button onClick={copy} style={{
+                border: 'none', cursor: 'pointer', padding: '6px 12px', borderRadius: 999,
+                background: copied ? '#2BB673' : 'rgba(255,255,255,0.1)',
+                color: '#fff', fontFamily: sansFamily, fontSize: 12, fontWeight: 600,
+                display: 'flex', alignItems: 'center', gap: 5, transition: 'all .2s',
+              }}>
+                {copied ? Icon.check(13, '#fff') : Icon.copy(13, '#fff')}
+                {copied ? 'Copied' : 'Copy'}
+              </button>
+            </div>
+            <pre style={{
+              margin: 0, padding: '16px 18px 20px',
+              fontFamily: monoFamily, fontSize: 12.5, lineHeight: 1.55,
+              color: '#E6E4DE', whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+              maxHeight: 280, overflow: 'auto',
+            }}>{full.prompt}</pre>
+          </div>
+        </div>
+
+        {/* Source */}
+        {full.source && (
+          <div style={{ padding: '18px 24px 0', fontFamily: sansFamily, fontSize: 12, color: c.muted }}>
+            Source: <span style={{ color: c.ink2 }}>{full.source}</span>
+          </div>
+        )}
+
+        {/* Related */}
+        <div style={{ padding: '28px 24px 0' }}>
+          <div style={{ fontFamily: sansFamily, fontSize: 12, fontWeight: 700, letterSpacing: 0.8, textTransform: 'uppercase', color: c.muted, marginBottom: 10 }}>Related tricks</div>
+          {SPARK_DATA.tips.slice(0, 3).filter(t => t.id !== tipId).slice(0, 3).map(t => (
+            <div key={t.id} style={{
+              display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0',
+              borderBottom: `1px solid ${c.line}`,
+            }}>
+              <div style={{
+                width: 52, height: 52, borderRadius: 12, background: `radial-gradient(circle at 40% 35%, hsl(${t.hue}, 70%, 85%), hsl(${t.hue}, 60%, 70%))`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              }}>
+                <div style={{ transform: 'scale(0.35)' }}>
+                  <TipShape name={t.shape} hue={t.hue} dark={dark} size={140}/>
+                </div>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontFamily: sansFamily, fontSize: 10.5, fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase', color: `hsl(${t.hue}, 55%, 40%)` }}>{t.category}</div>
+                <div style={{ fontFamily: serifFamily, fontSize: 18, color: c.ink, letterSpacing: -0.3, marginTop: 2 }}>{t.title}</div>
+              </div>
+              {Icon.chevR(16, c.muted)}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* bottom floating Try-it-live CTA */}
+      <div style={{
+        position: 'absolute', bottom: 34, left: 20, right: 20, zIndex: 20,
+      }}>
+        <button onClick={() => onTryLive(tipId)} style={{
+          width: '100%', height: 54, borderRadius: 27, border: 'none', cursor: 'pointer',
+          background: '#5B4CE5', color: '#fff', fontFamily: sansFamily, fontSize: 15, fontWeight: 600,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          boxShadow: '0 14px 30px rgba(91,76,229,0.45)',
+        }}>
+          {Icon.play(20, '#fff', true)} Try this live
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function makeSynthBody(meta) {
+  // fallback body for non-featured tips
+  return {
+    hook: meta.kicker,
+    body: [
+      `${meta.title} is one of those tactics that looks small on paper but changes what the model produces in practice.`,
+      `The core move: ${meta.kicker.toLowerCase()}. It works because of how models allocate attention during generation — structure in the input shapes structure in the output.`,
+      `Use it whenever you catch yourself re-prompting the same idea three ways. It's almost always cheaper than adding more instructions.`,
+    ],
+    prompt: `# ${meta.title}
+
+System: You are a careful, precise assistant.
+
+User: {{task}}
+
+Apply the ${meta.title} pattern:
+- Identify the core objective.
+- Follow the technique's structure strictly.
+- Return output in the requested format.
+
+Task:
+{{task}}`,
+    source: `Spark research, 2026`,
+  };
+}
+
+Object.assign(window, { TipDetailScreen });
+
+
+// ===== screens.jsx =====
+// Spark — Browse (categories grid) + Playground + Profile
+
+function BrowseScreen({ onOpenTip, dark }) {
+  const c = dark ? SparkColors.dark : SparkColors.light;
+  const [q, setQ] = React.useState('');
+  const cats = SPARK_DATA.categories;
+  return (
+    <div style={{ padding: '70px 0 110px', minHeight: '100%', background: c.bg }}>
+      <div style={{ padding: '8px 20px 0' }}>
+        <div style={{ fontFamily: serifFamily, fontSize: 36, color: c.ink, letterSpacing: -0.8, lineHeight: 1 }}>
+          Browse
+        </div>
+        <div style={{ marginTop: 4, fontFamily: sansFamily, fontSize: 14, color: c.muted }}>
+          147 tricks across 8 categories
+        </div>
+
+        {/* search */}
+        <div style={{
+          marginTop: 18, display: 'flex', alignItems: 'center', gap: 10,
+          padding: '12px 16px', borderRadius: 14, background: c.card, border: `1px solid ${c.line}`,
+        }}>
+          {Icon.search(18, c.muted)}
+          <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search techniques, models, papers..." style={{
+            flex: 1, border: 'none', outline: 'none', background: 'transparent',
+            fontFamily: sansFamily, fontSize: 15, color: c.ink,
+          }}/>
+        </div>
+      </div>
+
+      {/* category grid */}
+      <div style={{ padding: '20px 20px 0', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        {cats.map(cat => (
+          <button key={cat.id} style={{
+            border: 'none', cursor: 'pointer', padding: 0, borderRadius: 20,
+            overflow: 'hidden', background: c.card, border: `1px solid ${c.line}`,
+            textAlign: 'left', aspectRatio: '1 / 1.05',
+            display: 'flex', flexDirection: 'column',
+          }}>
+            <div style={{
+              flex: 1, position: 'relative', overflow: 'hidden',
+              background: `radial-gradient(circle at 50% 55%, hsl(${cat.hue}, 75%, 90%) 0%, hsl(${cat.hue}, 60%, 95%) 50%, ${c.bg2} 100%)`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <CatGlyph cat={cat}/>
+            </div>
+            <div style={{ padding: '12px 14px' }}>
+              <div style={{ fontFamily: serifFamily, fontSize: 19, color: c.ink, letterSpacing: -0.3, lineHeight: 1.1 }}>
+                {cat.name}
+              </div>
+              <div style={{ marginTop: 2, fontFamily: sansFamily, fontSize: 12, color: c.muted }}>
+                {cat.count} tricks
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* trending */}
+      <div style={{ padding: '28px 20px 0' }}>
+        <div style={{ fontFamily: sansFamily, fontSize: 12, fontWeight: 700, letterSpacing: 0.8, textTransform: 'uppercase', color: c.muted, marginBottom: 10 }}>Trending this week</div>
+        {SPARK_DATA.tips.slice(0, 4).map((t, i) => (
+          <button key={t.id} onClick={() => onOpenTip(t.id)} style={{
+            width: '100%', textAlign: 'left', border: 'none', cursor: 'pointer',
+            padding: '12px 0', background: 'transparent',
+            display: 'flex', alignItems: 'center', gap: 14,
+            borderBottom: i < 3 ? `1px solid ${c.line}` : 'none',
+          }}>
+            <div style={{ fontFamily: serifFamily, fontSize: 22, color: c.muted, width: 24, textAlign: 'center', fontStyle: 'italic' }}>{i+1}</div>
+            <div style={{
+              width: 52, height: 52, borderRadius: 12, overflow: 'hidden',
+              background: `radial-gradient(circle at 40% 35%, hsl(${t.hue}, 70%, 88%), hsl(${t.hue}, 60%, 78%))`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            }}>
+              <div style={{ transform: 'scale(0.35)' }}>
+                <TipShape name={t.shape} hue={t.hue} dark={dark} size={140}/>
+              </div>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: sansFamily, fontSize: 10.5, fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase', color: `hsl(${t.hue}, 55%, 40%)` }}>{t.category}</div>
+              <div style={{ fontFamily: sansFamily, fontSize: 15, fontWeight: 600, color: c.ink, letterSpacing: -0.2, marginTop: 1 }}>{t.title}</div>
+            </div>
+            {Icon.chevR(16, c.muted)}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CatGlyph({ cat }) {
+  // a minimal abstract glyph per category, tinted by hue
+  const c = `hsl(${cat.hue}, 65%, 45%)`;
+  const c2 = `hsl(${cat.hue}, 70%, 60%)`;
+  const glyphs = {
+    reasoning: <svg width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="22" fill={c2}/><path d="M28 40 L36 48 L52 32" stroke="#fff" strokeWidth="4" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+    structure: <svg width="80" height="80" viewBox="0 0 80 80"><path d="M32 22 L18 40 L32 58" stroke={c} strokeWidth="6" fill="none" strokeLinecap="round"/><path d="M48 22 L62 40 L48 58" stroke={c2} strokeWidth="6" fill="none" strokeLinecap="round"/></svg>,
+    control: <svg width="80" height="80" viewBox="0 0 80 80"><rect x="22" y="30" width="36" height="22" rx="5" fill={c2}/><circle cx="32" cy="41" r="3" fill="#fff"/><circle cx="48" cy="41" r="3" fill="#fff"/></svg>,
+    summarization: <svg width="80" height="80" viewBox="0 0 80 80"><rect x="18" y="26" width="44" height="6" rx="2" fill={c}/><rect x="18" y="37" width="44" height="6" rx="2" fill={c2}/><rect x="18" y="48" width="26" height="6" rx="2" fill={c2} opacity="0.6"/></svg>,
+    'few-shot': <svg width="80" height="80" viewBox="0 0 80 80"><circle cx="30" cy="40" r="10" fill={c2}/><circle cx="50" cy="40" r="10" fill={c} opacity="0.8"/><circle cx="40" cy="40" r="10" fill={c2} opacity="0.5"/></svg>,
+    agents: <svg width="80" height="80" viewBox="0 0 80 80"><rect x="30" y="20" width="20" height="20" rx="4" fill={c}/><rect x="16" y="44" width="18" height="18" rx="4" fill={c2}/><rect x="46" y="44" width="18" height="18" rx="4" fill={c2}/><path d="M40 40 L25 44 M40 40 L55 44" stroke={c} strokeWidth="2"/></svg>,
+    evals: <svg width="80" height="80" viewBox="0 0 80 80"><path d="M18 56 L30 40 L44 48 L62 22" stroke={c} strokeWidth="4" fill="none" strokeLinecap="round" strokeLinejoin="round"/><circle cx="62" cy="22" r="4" fill={c2}/></svg>,
+    cost: <svg width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="18" fill={c2}/><text x="40" y="47" textAnchor="middle" fill="#fff" fontSize="20" fontWeight="800" fontFamily="-apple-system">$</text></svg>,
+  };
+  return glyphs[cat.id] || glyphs.reasoning;
+}
+
+// ---------- PLAYGROUND ---------- //
+
+function PlaygroundScreen({ initialPrompt, tipId, onClose, dark }) {
+  const c = dark ? SparkColors.dark : SparkColors.light;
+  const meta = SPARK_DATA.tips.find(t => t.id === tipId) || SPARK_DATA.tips[0];
+  const full = tipId === SPARK_DATA.today.id ? SPARK_DATA.today : null;
+  const defaultPrompt = full?.prompt || `Apply "${meta.title}" to this input:\n\n{{article}}`;
+  const [prompt, setPrompt] = React.useState(defaultPrompt);
+  const [input, setInput] = React.useState(
+    `Anthropic released Claude Haiku 4.5 in October, positioning it as a fast small-model option. It scored near previous flagship performance on coding benchmarks while costing roughly a third as much per token.`
+  );
+  const [output, setOutput] = React.useState('');
+  const [running, setRunning] = React.useState(false);
+
+  const run = async () => {
+    setRunning(true);
+    setOutput('');
+    try {
+      const filled = prompt.replace('{{article}}', input).replace('{{task}}', input);
+      const text = await window.claude.complete(filled);
+      setOutput(text);
+    } catch (e) {
+      setOutput('— Could not reach the model. Showing a cached example instead.\n\nBy pass 5, the summary names Anthropic, Claude Haiku 4.5, October 2025, coding benchmarks, and a ~3× cost reduction vs. prior flagships — all in the same 80-word budget.');
+    }
+    setRunning(false);
+  };
+
+  return (
+    <div style={{ position: 'absolute', inset: 0, background: c.bg, display: 'flex', flexDirection: 'column' }}>
+      {/* header */}
+      <div style={{ paddingTop: 54, paddingBottom: 10, background: c.bg, borderBottom: `1px solid ${c.line}` }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px' }}>
+          <button onClick={onClose} style={{ border: 'none', background: c.bg2, width: 40, height: 40, borderRadius: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {Icon.close(18, c.ink)}
+          </button>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontFamily: sansFamily, fontSize: 11, color: c.muted, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase' }}>Try it live</div>
+            <div style={{ fontFamily: sansFamily, fontSize: 15, fontWeight: 600, color: c.ink, letterSpacing: -0.2 }}>{meta.title}</div>
+          </div>
+          <div style={{ width: 40, height: 40 }}/>
+        </div>
+      </div>
+
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 140px' }}>
+        {/* Prompt */}
+        <SectionLabel c={c} label="Prompt" right={<span style={{ fontSize: 11, color: c.muted }}>editable</span>}/>
+        <textarea value={prompt} onChange={e => setPrompt(e.target.value)} style={{
+          width: '100%', boxSizing: 'border-box', padding: 14, borderRadius: 16,
+          border: `1px solid ${c.line}`, background: c.card, resize: 'none',
+          fontFamily: monoFamily, fontSize: 12, lineHeight: 1.5, color: c.ink,
+          minHeight: 160, outline: 'none',
+        }}/>
+
+        {/* Input */}
+        <div style={{ marginTop: 18 }}>
+          <SectionLabel c={c} label="Input" right={<span style={{ fontSize: 11, color: c.muted }}>{`{{article}}`}</span>}/>
+          <textarea value={input} onChange={e => setInput(e.target.value)} style={{
+            width: '100%', boxSizing: 'border-box', padding: 14, borderRadius: 16,
+            border: `1px solid ${c.line}`, background: c.card, resize: 'none',
+            fontFamily: sansFamily, fontSize: 14, lineHeight: 1.45, color: c.ink,
+            minHeight: 100, outline: 'none',
+          }}/>
+        </div>
+
+        {/* Output */}
+        <div style={{ marginTop: 18 }}>
+          <SectionLabel c={c} label="Output" right={
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ width: 6, height: 6, borderRadius: 3, background: running ? '#E5A64C' : '#2BB673' }}/>
+              <span style={{ fontSize: 11, color: c.muted }}>{running ? 'Running…' : 'Claude Haiku 4.5'}</span>
+            </div>
+          }/>
+          <div style={{
+            padding: 16, borderRadius: 16, background: c.ink, color: c.bg,
+            fontFamily: monoFamily, fontSize: 12.5, lineHeight: 1.55,
+            minHeight: 120, whiteSpace: 'pre-wrap',
+          }}>
+            {output || <span style={{ opacity: 0.5 }}>Tap Run to see the trick in action.</span>}
+          </div>
+        </div>
+      </div>
+
+      {/* run cta */}
+      <div style={{ position: 'absolute', bottom: 34, left: 20, right: 20 }}>
+        <button onClick={run} disabled={running} style={{
+          width: '100%', height: 54, borderRadius: 27, border: 'none', cursor: 'pointer',
+          background: running ? c.muted : '#5B4CE5', color: '#fff',
+          fontFamily: sansFamily, fontSize: 15, fontWeight: 600,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          boxShadow: '0 14px 30px rgba(91,76,229,0.45)',
+        }}>
+          {running ? 'Generating…' : <>Run {Icon.send(16, '#fff')}</>}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function SectionLabel({ c, label, right }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+      <div style={{ fontFamily: sansFamily, fontSize: 11.5, fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase', color: c.muted }}>{label}</div>
+      {right}
+    </div>
+  );
+}
+
+// ---------- PROFILE ---------- //
+
+function ProfileScreen({ dark, onToggleDark }) {
+  const c = dark ? SparkColors.dark : SparkColors.light;
+  const s = SPARK_DATA.streak;
+  const achievements = [
+    { id: 'a1', name: '7-day streak', unlocked: true,  hue: 20 },
+    { id: 'a2', name: '30-day streak', unlocked: true,  hue: 280 },
+    { id: 'a3', name: '100 tricks',    unlocked: false, hue: 200 },
+    { id: 'a4', name: 'Night owl',     unlocked: true,  hue: 260 },
+    { id: 'a5', name: 'Power user',    unlocked: false, hue: 140 },
+    { id: 'a6', name: 'Researcher',    unlocked: false, hue: 0   },
+  ];
+
+  return (
+    <div style={{ padding: '70px 0 110px', minHeight: '100%', background: c.bg }}>
+      {/* header */}
+      <div style={{ padding: '8px 20px 0', display: 'flex', alignItems: 'center', gap: 14 }}>
+        <div style={{
+          width: 64, height: 64, borderRadius: 32,
+          background: 'linear-gradient(135deg, #5B4CE5 0%, #E54CA8 100%)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: '#fff', fontFamily: serifFamily, fontSize: 28,
+        }}>A</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontFamily: serifFamily, fontSize: 24, color: c.ink, letterSpacing: -0.4 }}>Alex Chen</div>
+          <div style={{ fontFamily: sansFamily, fontSize: 13, color: c.muted }}>Fluent · joined March 2026</div>
+        </div>
+      </div>
+
+      {/* hero streak */}
+      <div style={{ padding: '24px 20px 0' }}>
+        <div style={{
+          position: 'relative', padding: '28px 24px', borderRadius: 28,
+          background: 'linear-gradient(150deg, #FFE8D1 0%, #FFD6C0 55%, #FFC3A8 100%)',
+          overflow: 'hidden',
+        }}>
+          <div style={{ position: 'absolute', right: -10, bottom: -10, opacity: 0.9 }}>
+            <ShapeFlame size={170}/>
+          </div>
+          <div style={{ fontFamily: sansFamily, fontSize: 11, fontWeight: 700, letterSpacing: 0.8, textTransform: 'uppercase', color: '#8A3600' }}>
+            Current streak
+          </div>
+          <div style={{ fontFamily: serifFamily, fontSize: 68, lineHeight: 1, color: '#2A0E00', marginTop: 6, letterSpacing: -2 }}>
+            {s.current}
+          </div>
+          <div style={{ fontFamily: sansFamily, fontSize: 14, color: '#6A2B00', marginTop: 4 }}>
+            days on fire
+          </div>
+          <div style={{ marginTop: 14, padding: '8px 14px', borderRadius: 999, background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', display: 'inline-block', fontFamily: sansFamily, fontSize: 12, fontWeight: 600, color: '#6A2B00' }}>
+            {s.longest - s.current} days from your record
+          </div>
+        </div>
+      </div>
+
+      {/* stats */}
+      <div style={{ padding: '16px 20px 0', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+        {[
+          { label: 'Tricks', value: '89' },
+          { label: 'Saved',  value: '23' },
+          { label: 'Hours',  value: '4.7' },
+        ].map(st => (
+          <div key={st.label} style={{
+            padding: '16px 14px', borderRadius: 18, background: c.card, border: `1px solid ${c.line}`,
+          }}>
+            <div style={{ fontFamily: serifFamily, fontSize: 26, color: c.ink, letterSpacing: -0.3 }}>{st.value}</div>
+            <div style={{ fontFamily: sansFamily, fontSize: 12, color: c.muted, fontWeight: 600, marginTop: 2 }}>{st.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* achievements */}
+      <div style={{ padding: '28px 20px 0' }}>
+        <div style={{ fontFamily: sansFamily, fontSize: 12, fontWeight: 700, letterSpacing: 0.8, textTransform: 'uppercase', color: c.muted, marginBottom: 10 }}>Achievements</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+          {achievements.map(a => (
+            <div key={a.id} style={{
+              aspectRatio: '1 / 1.1', padding: 10, borderRadius: 16,
+              background: c.card, border: `1px solid ${c.line}`,
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              opacity: a.unlocked ? 1 : 0.4, gap: 8,
+            }}>
+              <div style={{
+                width: 54, height: 54, borderRadius: '50%',
+                background: a.unlocked
+                  ? `radial-gradient(circle at 40% 35%, hsl(${a.hue}, 80%, 70%), hsl(${a.hue}, 70%, 45%))`
+                  : c.bg2,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: a.unlocked ? `0 8px 16px hsla(${a.hue}, 60%, 50%, 0.3)` : 'none',
+              }}>
+                <SparkMark size={28} color={a.unlocked ? '#fff' : c.muted}/>
+              </div>
+              <div style={{ fontFamily: sansFamily, fontSize: 11, fontWeight: 600, color: c.ink, textAlign: 'center', letterSpacing: -0.1 }}>{a.name}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Settings row */}
+      <div style={{ padding: '28px 20px 0' }}>
+        <div style={{ background: c.card, borderRadius: 18, border: `1px solid ${c.line}`, overflow: 'hidden' }}>
+          <SettingRow c={c} label="Daily reminder"   value="9:00 AM"/>
+          <SettingRow c={c} label="Difficulty"        value="Fluent"/>
+          <SettingRow c={c} label="Appearance"        value={dark ? 'Dark' : 'Light'} onClick={onToggleDark}/>
+          <SettingRow c={c} label="Share your streak" last chev/>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SettingRow({ c, label, value, last, chev, onClick }) {
+  return (
+    <div onClick={onClick} style={{
+      padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      borderBottom: last ? 'none' : `1px solid ${c.line}`,
+      fontFamily: sansFamily, cursor: onClick ? 'pointer' : 'default',
+    }}>
+      <div style={{ fontSize: 15, color: c.ink }}>{label}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        {value && <div style={{ fontSize: 14, color: c.muted }}>{value}</div>}
+        {Icon.chevR(14, c.muted)}
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { BrowseScreen, PlaygroundScreen, ProfileScreen });
+
+
+// ===== app.jsx =====
+// Spark — main App shell
+const TWEAKS = /*EDITMODE-BEGIN*/{
+  "dark": false
+}/*EDITMODE-END*/;
+
+function TabBar({ tab, setTab, dark }) {
+  const c = dark ? SparkColors.dark : SparkColors.light;
+  const tabs = [
+    { id: 'home',     label: 'Today',   icon: Icon.home },
+    { id: 'browse',   label: 'Browse',  icon: Icon.grid },
+    { id: 'play',     label: 'Play',    icon: Icon.play },
+    { id: 'profile',  label: 'You',     icon: Icon.user },
+  ];
+  return (
+    <div style={{
+      position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 30,
+      paddingBottom: 20, paddingTop: 6,
+      background: dark ? 'rgba(14,13,12,0.85)' : 'rgba(245,243,238,0.85)',
+      backdropFilter: 'blur(22px) saturate(180%)',
+      WebkitBackdropFilter: 'blur(22px) saturate(180%)',
+      borderTop: `1px solid ${c.line}`,
+      display: 'flex', justifyContent: 'space-around',
+    }}>
+      {tabs.map(t => {
+        const active = tab === t.id;
+        return (
+          <button key={t.id} onClick={() => setTab(t.id)} style={{
+            border: 'none', background: 'transparent', cursor: 'pointer',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+            padding: '8px 14px', color: active ? c.accent : c.muted,
+            fontFamily: sansFamily, fontSize: 10, fontWeight: 600, letterSpacing: 0.2,
+          }}>
+            {t.icon(24, active ? c.accent : c.muted, active)}
+            {t.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function TweaksPanel({ open, dark, setDark }) {
+  if (!open) return null;
+  return (
+    <div style={{
+      position: 'fixed', bottom: 24, right: 24, zIndex: 1000, width: 240,
+      background: dark ? '#1F1E1C' : '#fff', borderRadius: 18,
+      border: `1px solid rgba(0,0,0,0.08)`, padding: 16,
+      boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
+      fontFamily: sansFamily, color: dark ? '#F5F3EE' : '#1A1A1A',
+    }}>
+      <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase', color: '#8A8680', marginBottom: 12 }}>Tweaks</div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ fontSize: 14, fontWeight: 500 }}>Appearance</div>
+        <div style={{
+          display: 'flex', padding: 3, borderRadius: 999, background: dark ? '#0E0D0C' : '#ECE9E1',
+        }}>
+          {['light','dark'].map(m => {
+            const active = (m === 'dark') === dark;
+            return (
+              <button key={m} onClick={() => setDark(m === 'dark')} style={{
+                border: 'none', cursor: 'pointer', padding: '6px 12px', borderRadius: 999,
+                background: active ? (dark ? '#1F1E1C' : '#fff') : 'transparent',
+                color: dark ? '#F5F3EE' : '#1A1A1A',
+                fontFamily: sansFamily, fontSize: 12, fontWeight: 600,
+                boxShadow: active ? '0 1px 3px rgba(0,0,0,0.12)' : 'none',
+                textTransform: 'capitalize',
+              }}>{m}</button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [onboarded, setOnboarded] = React.useState(() => localStorage.getItem('spark.onb') === '1');
+  const [dark, setDark] = React.useState(TWEAKS.dark);
+  const [tab, setTab] = React.useState('home');
+  const [tipId, setTipId] = React.useState(null);
+  const [deckOpen, setDeckOpen] = React.useState(false);
+  const [playTipId, setPlayTipId] = React.useState(null);
+  const [tweaksOpen, setTweaksOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    const handler = (e) => {
+      if (!e.data) return;
+      if (e.data.type === '__activate_edit_mode') setTweaksOpen(true);
+      if (e.data.type === '__deactivate_edit_mode') setTweaksOpen(false);
+    };
+    window.addEventListener('message', handler);
+    try { window.parent.postMessage({ type: '__edit_mode_available' }, '*'); } catch (e) {}
+    return () => window.removeEventListener('message', handler);
+  }, []);
+
+  const toggleDark = (v) => {
+    const next = typeof v === 'boolean' ? v : !dark;
+    setDark(next);
+    try { window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { dark: next } }, '*'); } catch (e) {}
+  };
+
+  const finishOnb = () => { localStorage.setItem('spark.onb', '1'); setOnboarded(true); };
+
+  const c = dark ? SparkColors.dark : SparkColors.light;
+
+  let overlay = null;
+  if (!onboarded) overlay = <OnboardingFlow onFinish={finishOnb} dark={dark}/>;
+  else if (playTipId) overlay = <PlaygroundScreen tipId={playTipId} onClose={() => setPlayTipId(null)} dark={dark}/>;
+  else if (tipId) overlay = <TipDetailScreen tipId={tipId} onClose={() => setTipId(null)} onTryLive={(id) => { setPlayTipId(id); setTipId(null); }} dark={dark}/>;
+  else if (deckOpen) overlay = <DeckScreen onClose={() => setDeckOpen(false)} onOpenTip={(id) => { setDeckOpen(false); setTipId(id); }} dark={dark}/>;
+
+  return (
+    <ThemeCtx.Provider value={{ dark }}>
+      <div data-screen-label={overlay ? 'Overlay' : `Tab: ${tab}`} style={{ position: 'relative' }}>
+        <IOSDevice dark={dark}>
+          <div style={{ position: 'relative', height: '100%', background: c.bg }}>
+            {tab === 'home' && (
+              <HomeScreen
+                today={SPARK_DATA.today}
+                streak={SPARK_DATA.streak}
+                onOpenTip={setTipId}
+                onOpenDeck={() => setDeckOpen(true)}
+                dark={dark}/>
+            )}
+            {tab === 'browse'  && <BrowseScreen onOpenTip={setTipId} dark={dark}/>}
+            {tab === 'play'    && <PlaygroundScreen tipId={SPARK_DATA.today.id} onClose={() => setTab('home')} dark={dark}/>}
+            {tab === 'profile' && <ProfileScreen dark={dark} onToggleDark={() => toggleDark()}/>}
+
+            {overlay}
+
+            {!overlay && <TabBar tab={tab} setTab={setTab} dark={dark}/>}
+          </div>
+        </IOSDevice>
+        <TweaksPanel open={tweaksOpen} dark={dark} setDark={toggleDark}/>
+      </div>
+    </ThemeCtx.Provider>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+
+
+
+</script>
+</body>
+</html>
