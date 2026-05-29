@@ -55,6 +55,7 @@ cd frontend && npx tsc --noEmit                                # type-check
 ## Notes
 - The canonical unit enum (`backend/app/units.py`) was extended with `lb` and
   `fl_oz` per the spec's §6 recommendation, since US recipes rely on them.
-- Per-user rate limit on `/parse` is 20/hour (in-memory; back with Redis for
-  multi-instance deployments).
+- Per-user rate limit on `/parse` is 20/hour (sliding window). Set `REDIS_URL`
+  to enforce it globally across all workers/instances; without it the limiter is
+  per-process. See `backend/README.md` → "Rate limiting".
 - Out of scope (v1): importing recipe photos from URLs, bulk import.

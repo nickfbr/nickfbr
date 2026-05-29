@@ -4,8 +4,9 @@
 # nickfbr/recipe). If deploying from a monorepo where this lives under recipe/,
 # move render.yaml to the repo root and prefix the paths below with `recipe/`.
 #
-# Render's free Postgres + a Docker web service. The API reads its config from
-# environment variables (pydantic-settings), so no .env file is needed in prod.
+# Provisions: a Docker web service, a free managed Postgres, and a free managed
+# Redis ("Key Value") instance that backs the global parse rate limiter. The API
+# reads all config from environment variables (pydantic-settings).
 
 services:
   - type: web
@@ -32,6 +33,21 @@ services:
         value: "*"
       - key: WEB_CONCURRENCY
         value: "2"
+      # Global, cross-worker parse rate limiting. Without this the limiter is
+      # per-process, so the 20/hour budget effectively multiplies by the number
+      # of workers/instances.
+      - key: REDIS_URL
+        fromService:
+          name: recipe-box-redis
+          type: redis # Render now labels this "Key Value"; `redis` still resolves.
+          property: connectionString
+
+  # Managed Redis / Key Value instance. Internal-only: an empty ipAllowList
+  # means no public network access (the web service reaches it privately).
+  - type: redis
+    name: recipe-box-redis
+    plan: free
+    ipAllowList: []
 
 databases:
   - name: recipe-box-db

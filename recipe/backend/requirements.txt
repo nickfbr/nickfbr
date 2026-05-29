@@ -14,3 +14,4 @@ httpx>=0.27
 recipe-scrapers>=15.0
 anthropic>=0.40
 boto3>=1.34
+redis>=5.0

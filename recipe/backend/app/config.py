@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     anthropic_api_key: str = ""
     anthropic_model: str = "claude-sonnet-4-6"
 
+    # Redis (optional). When set, the parse rate limiter is enforced globally
+    # across all workers/instances. Unset -> in-memory per-process limiter.
+    redis_url: str = ""
+
     # Parse endpoint limits
     parse_rate_limit_per_hour: int = 20
     max_text_length: int = 20_000

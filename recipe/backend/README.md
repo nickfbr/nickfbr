@@ -58,6 +58,34 @@ resolution + private/link-local/loopback/metadata-IP blocking, per-hop redirect
 re-validation, 5s timeout, 2 MB cap, HTML-only, no cookies/auth forwarded
 (`app/parsing/ssrf.py`, `fetcher.py`).
 
+## Rate limiting (`/api/recipes/parse`)
+
+The parse endpoint is rate-limited **per user** to bound LLM cost and abuse
+(`app/rate_limit.py`). It is a **sliding window**: at most
+`PARSE_RATE_LIMIT_PER_HOUR` (default **20**) requests per user in any rolling
+3600-second window — not a fixed hourly bucket, so a burst can't reset at the top
+of the hour.
+
+What happens when you exceed it:
+- The request is rejected with **HTTP 429** and the standard envelope
+  `{"error":{"code":"RATE_LIMITED","message":"Too many import requests. Try again in about Ns."}}`,
+  where `N` is computed from when the oldest request in your window expires.
+- Nothing is parsed or saved.
+
+Two backends, selected automatically by config:
+- **`REDIS_URL` set → global limiter.** A single atomic Redis Lua script
+  (sorted-set sliding window, keyed `parse_rl:user:<id>`) enforces the limit
+  across **every worker and instance**. This is what you want in production with
+  `WEB_CONCURRENCY > 1` or more than one instance — otherwise each process keeps
+  its own count and the effective limit multiplies by the worker count.
+- **`REDIS_URL` unset → in-memory limiter.** Process-local sliding window. Fine
+  for single-process local dev and tests.
+
+**Failure mode:** if Redis is unreachable, the limiter **fails open** (allows the
+request) and logs a warning — feature availability is preferred over hard-blocking
+when the limiter backend is down. The Anthropic provider's own limits remain a
+backstop. Keys auto-expire (`PEXPIRE`) so there is no unbounded growth.
+
 ## Deployment (Docker / Render)
 
 The API is containerized (`Dockerfile`): Gunicorn + Uvicorn workers, non-root,

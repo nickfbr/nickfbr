@@ -30,8 +30,8 @@ def client(db_engine):
             db.close()
 
     app.dependency_overrides[get_db] = override_get_db
-    # Reset the in-memory rate limiter between tests.
-    parse_rate_limiter._hits.clear()
+    # Reset the rate limiter between tests.
+    parse_rate_limiter.reset()
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
