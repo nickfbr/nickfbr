@@ -1,0 +1,38 @@
+# Render Blueprint for the Recipe Box API.
+#
+# Use this when `recipe/` is the repository root (e.g. after extracting into
+# nickfbr/recipe). If deploying from a monorepo where this lives under recipe/,
+# move render.yaml to the repo root and prefix the paths below with `recipe/`.
+#
+# Render's free Postgres + a Docker web service. The API reads its config from
+# environment variables (pydantic-settings), so no .env file is needed in prod.
+
+services:
+  - type: web
+    name: recipe-box-api
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /health
+    # Apply migrations once per deploy, before traffic shifts (avoids worker races).
+    preDeployCommand: alembic upgrade head
+    envVars:
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ANTHROPIC_API_KEY
+        sync: false # set in the Render dashboard (secret)
+      - key: ANTHROPIC_MODEL
+        value: claude-sonnet-4-6
+      - key: DATABASE_URL
+        fromDatabase:
+          name: recipe-box-db
+          property: connectionString
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: WEB_CONCURRENCY
+        value: "2"
+
+databases:
+  - name: recipe-box-db
+    plan: free

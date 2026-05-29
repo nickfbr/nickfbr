@@ -39,6 +39,13 @@ cp .env.example .env            # EXPO_PUBLIC_API_URL=http://localhost:8000
 npx expo start
 ```
 
+## Deploy (Docker / Render)
+The backend API is containerized. Locally, `docker compose up --build` brings up
+Postgres + the API (migrations run automatically). For Render, use the blueprint
+`render.yaml` (Docker web service + managed Postgres) — see `backend/README.md`
+for details. The Expo frontend is a mobile client and is built/distributed
+separately (or served as a static web build).
+
 ## Tests
 ```bash
 cd backend && pip install -r requirements-dev.txt && pytest   # 38 passing

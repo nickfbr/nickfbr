@@ -1,0 +1,53 @@
+# Local container stack: Postgres + the API. Mirrors the Render setup so you can
+# test the production image locally.
+#
+#   docker compose up --build
+#   # API on http://localhost:8000  (/docs for OpenAPI)
+#
+# Set ANTHROPIC_API_KEY in your shell (or a .env beside this file) for the
+# /api/recipes/parse endpoint to reach the LLM.
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: recipe
+      POSTGRES_PASSWORD: recipe
+      POSTGRES_DB: recipes
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U recipe -d recipes"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  migrate:
+    build: ./backend
+    command: alembic upgrade head
+    environment:
+      DATABASE_URL: postgresql://recipe:recipe@db:5432/recipes
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql://recipe:recipe@db:5432/recipes
+      JWT_SECRET: local-dev-secret-change-me
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_MODEL: claude-sonnet-4-6
+      CORS_ORIGINS: "*"
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+volumes:
+  pgdata:

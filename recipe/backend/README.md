@@ -58,6 +58,32 @@ resolution + private/link-local/loopback/metadata-IP blocking, per-hop redirect
 re-validation, 5s timeout, 2 MB cap, HTML-only, no cookies/auth forwarded
 (`app/parsing/ssrf.py`, `fetcher.py`).
 
+## Deployment (Docker / Render)
+
+The API is containerized (`Dockerfile`): Gunicorn + Uvicorn workers, non-root,
+`$PORT`-aware, 120s timeout (so the LLM/URL-fetch calls in `/parse` can finish).
+
+**Local container stack** (Postgres + API, mirrors prod) — from `recipe/`:
+```bash
+docker compose up --build      # API on http://localhost:8000
+```
+The `migrate` service runs `alembic upgrade head` before the API starts. Set
+`ANTHROPIC_API_KEY` in your shell for the parse endpoint to reach the LLM.
+
+**Render** — deploy via the blueprint `recipe/render.yaml` (Docker web service +
+free Postgres). It generates `JWT_SECRET`, wires `DATABASE_URL` from the managed
+DB, and runs migrations as the `preDeployCommand`. Set `ANTHROPIC_API_KEY` as a
+secret in the dashboard. If deploying from the monorepo root rather than a
+dedicated `nickfbr/recipe` repo, move `render.yaml` to the repo root and prefix
+its paths with `recipe/`.
+
+Plain Docker:
+```bash
+docker build -t recipe-box-api ./backend
+docker run -p 8000:8000 -e JWT_SECRET=... -e DATABASE_URL=... -e ANTHROPIC_API_KEY=... recipe-box-api
+# run migrations once against the target DB: alembic upgrade head
+```
+
 ## Layout
 ```
 app/

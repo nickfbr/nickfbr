@@ -1,0 +1,14 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.db
+.env
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+tests/
+.git/
+.gitignore
+README.md
